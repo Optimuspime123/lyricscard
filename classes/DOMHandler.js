@@ -11,6 +11,10 @@ const NO_LYRICS_SELECTED =
     "No lyrics selected<br>You can still type your own lyrics by clicking here :)";
 const SPOTIFY_LOGO =
     "https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg";
+const APPLE_LOGO =
+    "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg";
+const APPLE_GLYPH_SELECTOR = ".song-image > .apple-music-logo > .apple-glyph";
+const SPOTIFY_LOGO_SELECTOR = ".song-image > .spotify-logo > img";
 
 const CARD_STYLES = ["spotify", "apple-music"];
 const DEFAULT_CARD_STYLE = "spotify";
@@ -315,7 +319,7 @@ class DOMHandler {
         this.populateColorSelection();
         this.setupShareButton();
         this.setListeners();
-        this.setBase64Image(SPOTIFY_LOGO, ".song-image > .spotify-logo > img", 0);
+        this.tintBrandLogos(0);
         this.setCardStyle(DEFAULT_CARD_STYLE);
         this.setTheme(
             localStorage.getItem("theme") ??
@@ -369,10 +373,7 @@ class DOMHandler {
         this.lightTextSwitch.addEventListener("click", () => {
             this.userPickedLightText = true;
             this.finalOptions.classList.toggle("light-text");
-
-            this.setBase64Image(
-                SPOTIFY_LOGO,
-                ".song-image > .spotify-logo > img",
+            this.tintBrandLogos(
                 this.finalOptions.classList.contains("light-text") ? 255 : 0
             );
         });
@@ -846,11 +847,18 @@ class DOMHandler {
         if (wantLight === hasLight) return;
 
         this.finalOptions.classList.toggle("light-text", wantLight);
-        this.setBase64Image(
-            SPOTIFY_LOGO,
-            ".song-image > .spotify-logo > img",
-            wantLight ? 255 : 0
-        );
+        this.tintBrandLogos(wantLight ? 255 : 0);
+    }
+
+    /**
+     * Re-tints the Spotify and Apple Music wordmark images via canvas. Both
+     * are loaded as base64 (so html2canvas can export them) and re-painted
+     * to grayscale with the given channel value (0 = black, 255 = white).
+     * @param {number} channel
+     */
+    tintBrandLogos(channel) {
+        this.setBase64Image(SPOTIFY_LOGO, SPOTIFY_LOGO_SELECTOR, channel);
+        this.setBase64Image(APPLE_LOGO, APPLE_GLYPH_SELECTOR, channel);
     }
 
     /**

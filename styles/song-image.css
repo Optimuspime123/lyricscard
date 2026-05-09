@@ -111,21 +111,27 @@
     filter: brightness(0) saturate(100%) invert(100%);
 }
 
-/* Apple Music wordmark (inline svg + text) */
+/* Apple Music wordmark (Apple silhouette img + "Music" text) */
 .song-image > .apple-music-logo {
-    gap: 0.25rem;
+    gap: 0.3rem;
     color: currentColor;
     font-weight: 600;
     letter-spacing: -0.015em;
 }
 
-.song-image > .apple-music-logo .apple-glyph {
-    height: 1.05em;
+/* The img is pre-tinted via canvas (for html2canvas export); the CSS filter
+   is a redundant browser-side fallback so it always paints correctly. */
+.song-image > .apple-music-logo > .apple-glyph {
+    height: 1.15em;
     width: auto;
-    fill: currentColor;
+    filter: brightness(0) saturate(100%);
 }
 
-.song-image > .apple-music-logo .apple-wordmark {
+.light-text .song-image > .apple-music-logo > .apple-glyph {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.song-image > .apple-music-logo > .apple-wordmark {
     font-size: 1.05em;
     line-height: 1;
 }
@@ -163,8 +169,8 @@
     box-shadow:
         0 18px 40px -12px rgba(0, 0, 0, 0.28),
         var(--elev-3);
-    /* Square card to match the 1:1 aspect ratio of Apple Music share assets. */
-    aspect-ratio: 1 / 1;
+    /* Square-by-default to match Apple Music share assets, but always grow
+       to fit the lyrics — no clipping. */
     min-height: var(--song-image-width, 20rem);
     justify-content: flex-start;
 }
@@ -201,7 +207,6 @@
 }
 
 .style-apple-music .song-image > .lyrics {
-    flex: 1;
     font-size: 1.4375rem;
     font-weight: 700;
     line-height: 1.32;
@@ -209,10 +214,12 @@
     padding-bottom: 0.4rem;
 }
 
-/* Apple Music wordmark stays bottom-left, matches share-card branding. */
+/* Apple Music wordmark sits bottom-left; pushed to the bottom of a square
+   card via margin-top:auto when lyrics don't fill it. */
 .style-apple-music.spotify-tag .song-image > .apple-music-logo {
     height: auto;
     padding: 0.75rem 0 0;
+    margin-top: auto;
     justify-content: flex-start;
     opacity: 0.95;
 }
@@ -291,13 +298,25 @@
     height: 1.125rem;
 }
 
-.style-glyph svg {
+.style-glyph svg,
+.style-glyph img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
 }
 
 .apple-music-glyph svg {
     fill: currentColor;
+}
+
+/* Tint the picker's Apple icon to match the surface text color so it
+   reads correctly on both light and dark theme. */
+.apple-music-glyph img {
+    filter: brightness(0) saturate(100%);
+}
+
+.dark-mode .apple-music-glyph img {
+    filter: brightness(0) saturate(100%) invert(100%);
 }
 
 @media (max-width: 380px) {
