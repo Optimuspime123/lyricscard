@@ -20,13 +20,13 @@ const BACKGROUND_SHADOW_OFFSET_Y = 4;
 const BACKGROUND_TO_SHADOW_FACTOR = 4;
 
 const COLORS = [
-    "#008fd1",
-    "#549aab",
-    "#8fc00c",
-    "#729962",
-    "#a2904e",
-    "#cd6800",
-    "#fc302f",
+    "#1e88e5",
+    "#00897b",
+    "#7cb342",
+    "#fb8c00",
+    "#e53935",
+    "#d81b60",
+    "#5e35b1",
 ];
 
 class DOMHandler {
@@ -43,9 +43,6 @@ class DOMHandler {
         /** @type {number?} */
         this.selectedSongIndex = null;
 
-        /** @type {boolean} */
-        this.usedDirectLink = false;
-
         /**
          * Below all are DOM elements
          */
@@ -59,15 +56,7 @@ class DOMHandler {
         /** @type {Element} */
         this.searchInput = document.querySelector("#song-name");
         /** @type {Element} */
-        this.artistInput = document.querySelector("#song-artist");
-        /** @type {Element} */
         this.searchButton = document.querySelector("#search");
-        /** @type {Element} */
-        this.spotifyLinkInput = document.querySelector("#spotify-link");
-        /** @type {Element} */
-        this.loadLinkButton = document.querySelector("#load-link");
-        /** @type {NodeListOf<Element>} */
-        this.tabButtons = document.querySelectorAll(".tab-button");
 
         /** @type {Element} */
         this.cloneableSelectSong = document.querySelector(
@@ -137,16 +126,11 @@ class DOMHandler {
             this.findSong();
         });
 
-        this.loadLinkButton.addEventListener("click", (e) => {
-            e.preventDefault();
-            this.loadFromSpotifyLink();
-        });
-
-        this.tabButtons.forEach((button) => {
-            button.addEventListener("click", () => {
-                const tab = button.dataset.tab;
-                this.switchTab(tab);
-            });
+        this.searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                this.findSong();
+            }
         });
 
         this.lastGoBack.addEventListener("click", () => {
@@ -157,15 +141,7 @@ class DOMHandler {
 
         document.querySelectorAll(".go-to-screen").forEach((button) => {
             button.addEventListener("click", () => {
-                const targetScreen = Number(button.dataset.number);
-
-                // If going back from lyrics screen and used direct link, go to screen 1
-                if (targetScreen === 2 && this.usedDirectLink) {
-                    this.displayScreen(1);
-                    this.usedDirectLink = false;
-                } else {
-                    this.displayScreen(targetScreen);
-                }
+                this.displayScreen(Number(button.dataset.number));
             });
         });
 
@@ -243,80 +219,27 @@ class DOMHandler {
      * Creates color selection DOM elements
      */
     populateColorSelection() {
+        const customColor = this.colorSelection.querySelector("#custom-color");
         COLORS.forEach((color) => {
             const element = document.createElement("div");
             element.classList.add("select-color");
             element.style.backgroundColor = color;
-            element.textContent = ".";
+            element.setAttribute("role", "radio");
+            element.setAttribute("aria-label", `Background ${color}`);
+            element.tabIndex = 0;
 
             element.addEventListener("click", () => {
                 this.setSongImageColor(color);
             });
+            element.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this.setSongImageColor(color);
+                }
+            });
 
-            this.colorSelection.insertBefore(
-                element,
-                this.colorSelection.querySelector("#custom-color")
-            );
+            this.colorSelection.insertBefore(element, customColor);
         });
-    }
-
-    /**
-     * Switches between search and link input tabs
-     * @param {string} tab
-     */
-    switchTab(tab) {
-        this.tabButtons.forEach((btn) => {
-            btn.classList.toggle("active", btn.dataset.tab === tab);
-        });
-
-        document.querySelectorAll(".tab-content").forEach((content) => {
-            content.classList.toggle("active", content.id === `${tab}-tab`);
-        });
-    }
-
-    /**
-     * Loads a song directly from Spotify link
-     */
-    async loadFromSpotifyLink() {
-        const url = this.spotifyLinkInput.value.trim();
-
-        if (url === "") {
-            return this.throwError("Please paste a Spotify link!");
-        }
-
-        const trackId = this.fetcher.parseSpotifyUrl(url);
-
-        if (!trackId) {
-            return this.throwError(
-                "Invalid Spotify link. Try the Search tab instead!"
-            );
-        }
-
-        this.spotifyLinkInput.setAttribute("disabled", "true");
-        this.loadLinkButton.setAttribute("disabled", "true");
-
-        this.hideError();
-        this.displaySearching("Loading song from Spotify...");
-
-        try {
-            const song = await this.fetcher.getTrackById(trackId);
-            this.songs = [song];
-            this.selectedSongIndex = 0;
-            this.usedDirectLink = true;
-
-            // Go directly to lyrics
-            await this.findLyrics();
-        } catch (error) {
-            console.error(error);
-
-            this.throwError(
-                "Couldn't load that song. Check the link and try again!"
-            );
-        }
-
-        this.hideSearching();
-        this.spotifyLinkInput.removeAttribute("disabled");
-        this.loadLinkButton.removeAttribute("disabled");
     }
 
     /**
@@ -343,7 +266,10 @@ class DOMHandler {
 
         try {
             this.songs = await this.fetcher.getSongInfos(name, SONGS_TO_FETCH);
-            this.usedDirectLink = false;
+
+            if (!this.songs || this.songs.length === 0) {
+                throw new Error("No results");
+            }
 
             this.populateSongSelection();
             this.displayScreen(2);

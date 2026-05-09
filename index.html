@@ -3,160 +3,210 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f6f3ee" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#161311" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Generate share-ready lyrics cards from your favorite songs.">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,1,0" />
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/wizard.css">
     <link rel="stylesheet" href="styles/song-image.css">
-    <title>Lyrics Image Generator</title>
+    <title>LyricPost — share what your songs say</title>
 </head>
 
 <body class="dark-mode">
+    <div class="bg-blob" aria-hidden="true">
+        <span class="blob blob-a"></span>
+        <span class="blob blob-b"></span>
+        <span class="blob blob-c"></span>
+    </div>
+
     <main>
         <section class="lyrics-image-screen search-form" data-number="1">
             <div class="screen-wrapper">
-                <header>
-                    <h1>Lyrics Image Generator</h1>
+                <header class="brand-header">
+                    <div class="brand">
+                        <span class="brand-glyph material-symbols-outlined" aria-hidden="true">graphic_eq</span>
+                        <h1>LyricPost</h1>
+                    </div>
+                    <p class="tagline">Turn the lines that hit hardest into a card you can share.</p>
                 </header>
-                <div class="input-tabs" style="display: none;">
-                    <button class="tab-button active" data-tab="search">Search</button>
-                    <button class="tab-button" data-tab="link">Paste Link</button>
-                </div>
-                <div class="tab-content active" id="search-tab">
-                    <form>
-                        <input class="surface" type="text" id="song-name" placeholder="Song name and author here">
-                        <button class="primary" id="search">
-                            Find that song!
-                        </button>
-                    </form>
-                </div>
-                <div class="tab-content" id="link-tab">
-                    <form>
-                        <input class="surface" type="text" id="spotify-link"
-                            placeholder="https://open.spotify.com/track/...">
-                        <button class="primary" id="load-link">
-                            Load song!
-                        </button>
-                    </form>
-                </div>
-                <div class="searching hidden"></div>
-                <div class="error hidden"></div>
+
+                <form class="search-card">
+                    <label class="visually-hidden" for="song-name">Song name and artist</label>
+                    <input class="search-input" type="text" id="song-name" autocomplete="off"
+                        placeholder="Song name and artist…">
+                    <button class="btn-primary" id="search" data-noise-button>
+                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                        <span>Find that song</span>
+                    </button>
+                </form>
+
+                <div class="searching hidden" aria-live="polite"></div>
+                <div class="error hidden" role="alert"></div>
             </div>
         </section>
+
         <section class="lyrics-image-screen hidden search-results" data-number="2">
             <div class="screen-wrapper">
-                <header>
-                    <button class="go-to-screen material-symbols-outlined" data-number="1">chevron_left</button>
-                    <h2>Select a song</h2>
+                <header class="screen-header">
+                    <button class="icon-btn go-to-screen material-symbols-outlined" data-number="1" aria-label="Back">
+                        chevron_left
+                    </button>
+                    <h2>Pick the right one</h2>
+                    <span class="header-spacer" aria-hidden="true"></span>
                 </header>
+
                 <div class="song-selection">
                     <div class="select-song cloneable">
-                        <img src="" alt="album-cover">
+                        <div class="cover-frame">
+                            <img src="" alt="">
+                        </div>
                         <div class="name"></div>
                         <div class="authors"></div>
                     </div>
                 </div>
             </div>
         </section>
+
         <section class="lyrics-image-screen hidden lyrics-results" data-number="3">
             <div class="screen-wrapper">
-                <header>
-                    <button class="go-to-screen material-symbols-outlined" data-number="2">chevron_left</button>
-                    <h2>Select lines</h2>
-                    <button class="go-to-screen right material-symbols-outlined" data-number="4">chevron_right</button>
+                <header class="screen-header">
+                    <button class="icon-btn go-to-screen material-symbols-outlined" data-number="2" aria-label="Back">
+                        chevron_left
+                    </button>
+                    <h2>Choose the lines</h2>
+                    <button class="icon-btn go-to-screen right material-symbols-outlined" data-number="4"
+                        aria-label="Continue">
+                        chevron_right
+                    </button>
                 </header>
+
                 <div class="song-info-display">
-                    <img src="" alt="album cover" class="song-info-cover">
+                    <img src="" alt="" class="song-info-cover">
                     <div class="song-info-text">
                         <div class="song-info-name"></div>
                         <div class="song-info-artist"></div>
                     </div>
                 </div>
-                <div class="searching hidden"></div>
+
+                <div class="searching hidden" aria-live="polite"></div>
                 <div class="lines-selection"></div>
             </div>
-            <button class="fab hidden" id="lyrics-fab">
-                <span class="material-symbols-outlined">arrow_forward</span>
+
+            <button class="fab hidden" id="lyrics-fab" aria-label="Continue with selected lines"
+                data-noise-button>
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                <span class="fab-label">Make card</span>
             </button>
         </section>
+
         <section class="lyrics-image-screen hidden final-options" data-number="4">
             <div class="screen-wrapper">
-                <header>
-                    <button class="material-symbols-outlined" id="last-go-back">chevron_left</button>
-                    <h2>Song image</h2>
-                    <button class="material-symbols-outlined" id="download">download</button>
+                <header class="screen-header">
+                    <button class="icon-btn material-symbols-outlined" id="last-go-back" aria-label="Back">
+                        chevron_left
+                    </button>
+                    <h2>Tune your card</h2>
+                    <button class="icon-btn material-symbols-outlined" id="download" aria-label="Download card">
+                        download
+                    </button>
                 </header>
-                <div class="searching hidden"></div>
-                <div class="song-image">
-                    <div class="header">
-                        <img src="" alt="album-cover">
-                        <div>
-                            <div class="name" contenteditable></div>
-                            <div class="authors" contenteditable></div>
+
+                <div class="searching hidden" aria-live="polite"></div>
+
+                <div class="card-stage">
+                    <div class="song-image">
+                        <div class="header">
+                            <img src="" alt="">
+                            <div>
+                                <div class="name" contenteditable spellcheck="false"></div>
+                                <div class="authors" contenteditable spellcheck="false"></div>
+                            </div>
+                        </div>
+                        <div class="lyrics" contenteditable="true" spellcheck="false"></div>
+                        <div class="spotify">
+                            <img src="" alt="">
                         </div>
                     </div>
-                    <div class="lyrics" contenteditable="true"></div>
-                    <div class="spotify">
-                        <img src="" />
+                </div>
+
+                <div class="control-panel">
+                    <div class="control-group color-group">
+                        <div class="control-label">Background</div>
+                        <div class="color-selection" role="radiogroup" aria-label="Card background color">
+                            <div id="custom-color">
+                                <input type="color" id="custom-color-input">
+                                <label class="material-symbols-outlined" for="custom-color-input"
+                                    aria-label="Custom color">palette</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="color-selection">
-                    <div class="" id="custom-color">
-                        <input type="color" id="custom-color-input">
-                        <label class="material-symbols-outlined" for="custom-color-input">palette</label>
+
+                    <div class="control-group toggle-group">
+                        <div class="switch-container" id="light-text">
+                            <div class="switch" role="switch" aria-checked="false" tabindex="0"></div>
+                            <div>Light text</div>
+                        </div>
+                        <div class="switch-container" id="spotify-tag">
+                            <div class="switch" role="switch" aria-checked="false" tabindex="0"></div>
+                            <div>Spotify tag</div>
+                        </div>
+                        <div class="switch-container" id="additional-bg">
+                            <div class="switch" role="switch" aria-checked="false" tabindex="0"></div>
+                            <div>Background</div>
+                        </div>
                     </div>
-                </div>
-                <div class="switch-container" id="light-text">
-                    <div class="switch"></div>
-                    <div>Light text</div>
-                </div>
-                <div class="switch-container" id="spotify-tag">
-                    <div class="switch"></div>
-                    <div>Spotify tag</div>
-                </div>
-                <div class="switch-container" id="additional-bg">
-                    <div class="switch"></div>
-                    <div>Background</div>
-                </div>
-                <div class="width-control">
-                    <div>
-                        <label for="width-slider">Width</label>
-                        <span id="width-value">320px</span>
+
+                    <div class="control-group">
+                        <div class="width-control">
+                            <div>
+                                <label for="width-slider">Width</label>
+                                <span id="width-value">320px</span>
+                            </div>
+                            <input type="range" id="width-slider" min="200" max="600" value="320" step="10">
+                        </div>
                     </div>
-                    <input type="range" id="width-slider" min="200" max="600" value="320" step="10">
-                </div>
-                <div class="control-group font-selection-container">
-                    <div class="font-label">Chinese Glyph Standards</div>
-                    <select id="font-lang" class="surface">
-                        <option value="en">Auto</option>
-                        <option value="zh-TW">TW</option>
-                        <option value="zh-CN">CN</option>
-                        <option value="zh-HK">HK</option>
-                        <option value="ja">JP</option>
-                        <option value="ko">KR</option>
-                    </select>
+
+                    <div class="control-group font-selection-container">
+                        <label class="font-label" for="font-lang">Glyph standard</label>
+                        <select id="font-lang">
+                            <option value="en">Auto</option>
+                            <option value="zh-TW">Traditional (TW)</option>
+                            <option value="zh-CN">Simplified (CN)</option>
+                            <option value="zh-HK">Cantonese (HK)</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
-    <footer class="surface">
-        <div>
+
+    <footer class="app-footer">
+        <div class="footer-credits">
             Made by
-            <a href="https://github.com/palinkiewicz" target="_blank">palinkiewicz</a>
-            |
-            <a href="https://ko-fi.com/palinkiewicz">Ko-Fi</a>
+            <a href="https://github.com/palinkiewicz" target="_blank" rel="noopener">palinkiewicz</a>
+            ·
+            <a href="https://ko-fi.com/palinkiewicz" target="_blank" rel="noopener">Ko-Fi</a>
         </div>
-        <div id="dark-mode-toggle">
-            <span class="material-symbols-outlined"></span>
-        </div>
+        <button id="dark-mode-toggle" type="button" aria-label="Toggle theme">
+            <span class="material-symbols-outlined" aria-hidden="true"></span>
+            <span class="theme-label"></span>
+        </button>
     </footer>
+
     <script src="classes/data/Artist.js"></script>
     <script src="classes/data/Lyric.js"></script>
     <script src="classes/data/Song.js"></script>
     <script src="classes/DataFetcher.js"></script>
+    <script src="classes/NoiseButton.js"></script>
     <script src="classes/DOMHandler.js"></script>
     <script src="index.js"></script>
 </body>

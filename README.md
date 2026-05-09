@@ -1,42 +1,73 @@
 # LyricPost
 
-> A simple yet powerful Spotify-like lyrics image generator built entirely with vanilla JavaScript.
+> A Spotify-style lyrics-card generator. Search a song, pick the lines that hit hardest, share the image.
 
-## Introduction
+Built with vanilla JavaScript on the front, a thin Node serverless backend on Vercel, [Last.fm](https://www.last.fm/) for song metadata, and [lrclib](https://lrclib.net/docs) for lyrics.
 
-LyricPost is a web application that allows users to generate Spotify-like lyrics images.
-By entering the name of a song, users can fetch songs from [Last.fm](https://www.last.fm/), select one, and then fetch the corresponding lyrics from [lrclib](https://lrclib.net/docs).
-Users can then select lines from the lyrics and generate a stylish image with customizable colors and other settings.
+## Architecture
+
+```
+┌──────────────┐    /api/search   ┌────────────────────┐
+│  Static      │ ───────────────▶ │  Vercel Function   │ ──▶ Last.fm
+│  index.html  │    /api/lyrics   │  (api/*.js)        │ ──▶ lrclib
+│  + JS/CSS    │ ◀─────────────── │  hides API key     │
+└──────────────┘                  └────────────────────┘
+```
+
+The browser only ever talks to `/api/*`. The Last.fm API key lives in a Vercel environment variable — never on the client.
+
+## Local development
+
+You need **Node 18+** and the [Vercel CLI](https://vercel.com/docs/cli):
+
+```bash
+npm i -g vercel
+cp .env.example .env.local
+# edit .env.local — paste your LASTFM_API_KEY
+vercel dev
+```
+
+`vercel dev` serves the static files at `http://localhost:3000` and runs the `api/*.js` handlers as serverless functions.
+
+> Don't have a Last.fm key? Grab one in 60 seconds at <https://www.last.fm/api/account/create>.
+
+## Deployment
+
+```bash
+vercel              # first time: link/create project
+vercel --prod       # deploy
+```
+
+Then in the Vercel dashboard: **Project → Settings → Environment Variables → add `LASTFM_API_KEY`**.
 
 ## Features
 
-- Finding a song using [Last.fm](https://www.last.fm/)
-- Fetching album cover from [CoverArtArchive](https://coverartarchive.org/)
-- Fetching the lyrics from [lrclib](https://lrclib.net/docs)
-- Generating a share-ready lyrics image with selected lyrics
-- Customizing colors and other elements of the generated image
-- Downloading the image in high quality
+- Find a song via [Last.fm](https://www.last.fm/)
+- Album art via [CoverArtArchive](https://coverartarchive.org/) (proxied through Last.fm)
+- Lyrics via [lrclib](https://lrclib.net/docs)
+- Pick lines, generate a stylish lyrics card, download in high resolution
+- Material 3 Expressive UI with subtle glassmorphism, light + dark themes
 
-## Live version
+## Project layout
 
-You can check it out [here](https://palinkiewicz.github.io/lyricpost/).
-
-## Screenshots
-
-Light mode                         | Dark mode
-:---------------------------------:|:---------------------------------:
-![](.screenshots/light-mode-1.png) | ![](.screenshots/dark-mode-1.png)
-![](.screenshots/light-mode-2.png) | ![](.screenshots/dark-mode-2.png)
-![](.screenshots/light-mode-3.png) | ![](.screenshots/dark-mode-3.png)
-
-## Local installation
-
-1. Clone the repo <br> ```https://github.com/palinkiewicz/lyricpost```
-2. Run index.html
-
-It's that easy!
+```
+api/
+  search.js          Last.fm proxy: search + per-track info
+  lyrics.js          lrclib proxy
+classes/
+  data/              Artist, Lyric, Song models
+  DataFetcher.js     Front-end client for /api/*
+  DOMHandler.js      Wizard flow + DOM rendering
+styles/              main.css (tokens + shell), wizard.css, song-image.css
+index.html           Single-page app
+index.js             Wires fetcher + handler
+vercel.json          Function config + headers
+```
 
 ## Disclaimer
 
-This project is not affiliated with or endorsed by Spotify.
-The Spotify logo is used in compliance with Spotify's branding guidelines and is fetched from an outside source.
+Not affiliated with or endorsed by Spotify. The Spotify wordmark is used per Spotify's branding guidelines and fetched at runtime.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
