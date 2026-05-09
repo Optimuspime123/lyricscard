@@ -11,6 +11,13 @@ const NO_LYRICS_SELECTED =
     "No lyrics selected<br>You can still type your own lyrics by clicking here :)";
 const SPOTIFY_LOGO =
     "https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg";
+const APPLE_LOGO =
+    "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg";
+const APPLE_GLYPH_SELECTOR = ".song-image > .apple-music-logo > .apple-glyph";
+const SPOTIFY_LOGO_SELECTOR = ".song-image > .spotify-logo > img";
+
+const CARD_STYLES = ["spotify", "apple-music"];
+const DEFAULT_CARD_STYLE = "spotify";
 
 const COLORS = [
     "#1e88e5",
@@ -281,6 +288,13 @@ class DOMHandler {
         this.fontLangSelect = document.querySelector("#font-lang");
         /** @type {Element} */
         this.songImage = document.querySelector(".song-image");
+        /** @type {Element} */
+        this.songImageCover = document.querySelector(
+            ".song-image > .header > img"
+        );
+
+        /** @type {NodeListOf<Element>} */
+        this.styleOptions = document.querySelectorAll(".style-option");
 
         /** @type {Element} */
         this.widthSlider = document.querySelector("#width-slider");
@@ -290,10 +304,23 @@ class DOMHandler {
         /** @type {Element} */
         this.toggleDarkMode = document.querySelector("#dark-mode-toggle");
 
+        /** @type {string} */
+        this.cardStyle = DEFAULT_CARD_STYLE;
+
+        /** @type {string?} The vibrant color extracted from the album cover */
+        this.dominantColor = null;
+
+        /** @type {boolean} Whether the user has manually overridden the background */
+        this.userPickedColor = false;
+
+        /** @type {boolean} Whether the user manually toggled light/dark text */
+        this.userPickedLightText = false;
+
         this.populateColorSelection();
         this.setupShareButton();
         this.setListeners();
-        this.setBase64Image(SPOTIFY_LOGO, ".song-image > .spotify > img", 0);
+        this.tintBrandLogos(0);
+        this.setCardStyle(DEFAULT_CARD_STYLE);
         this.setTheme(
             localStorage.getItem("theme") ??
             (window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -339,21 +366,32 @@ class DOMHandler {
         });
 
         this.customColorInput.addEventListener("input", () => {
+            this.userPickedColor = true;
             this.setSongImageColor(this.customColorInput.value);
         });
 
         this.lightTextSwitch.addEventListener("click", () => {
+            this.userPickedLightText = true;
             this.finalOptions.classList.toggle("light-text");
-
-            this.setBase64Image(
-                SPOTIFY_LOGO,
-                ".song-image > .spotify > img",
+            this.tintBrandLogos(
                 this.finalOptions.classList.contains("light-text") ? 255 : 0
             );
         });
 
         this.spotifyTagSwitch.addEventListener("click", () => {
             this.finalOptions.classList.toggle("spotify-tag");
+        });
+
+        this.styleOptions.forEach((option) => {
+            option.addEventListener("click", () => {
+                this.setCardStyle(option.dataset.style);
+            });
+            option.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this.setCardStyle(option.dataset.style);
+                }
+            });
         });
 
         this.downloadButton.addEventListener("click", () => {
@@ -437,11 +475,13 @@ class DOMHandler {
             element.tabIndex = 0;
 
             element.addEventListener("click", () => {
+                this.userPickedColor = true;
                 this.setSongImageColor(color);
             });
             element.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
+                    this.userPickedColor = true;
                     this.setSongImageColor(color);
                 }
             });
@@ -674,9 +714,14 @@ class DOMHandler {
      * Prepares song image DOM element
      */
     setSongImage() {
-        this.setBase64Image(
-            this.songs[this.selectedSongIndex].albumCoverUrl,
-            ".song-image > .header > img"
+        this.userPickedColor = false;
+        this.userPickedLightText = false;
+        this.dominantColor = null;
+        this.blurredCover = null;
+        this.songImage.style.removeProperty("--apple-bg-image");
+
+        this.setSongCoverAndExtractColor(
+            this.songs[this.selectedSongIndex].albumCoverUrl
         );
         this.setSongInfo();
         this.setSongLyrics(
@@ -684,9 +729,294 @@ class DOMHandler {
                 (selectLine) => Number(selectLine.dataset.index)
             )
         );
+        // Fallback color until the dominant-color extraction completes
         this.setSongImageColor(
             COLORS[Math.floor(Math.random() * COLORS.length)]
         );
+    }
+
+    /**
+     * Loads the album cover into the card (as base64 to dodge CORS) and,
+     * once decoded, extracts the dominant vibrant color and generates a
+     * blurred version of the artwork used as the Apple Music background.
+     * @param {string} url
+     */
+    async setSongCoverAndExtractColor(url) {
+        try {
+            const base64 = await this.fetchAsBase64(url);
+            this.songImageCover.setAttribute("src", base64);
+
+            const [color, blurred] = await Promise.all([
+                this.extractVibrantColor(base64),
+                this.generateBlurredCover(base64),
+            ]);
+            this.dominantColor = color;
+            this.blurredCover = blurred;
+            this.applyDominantBackground();
+            this.applyAppleMusicBackground();
+        } catch (error) {
+            console.warn("Cover load / color extraction failed:", error);
+        }
+    }
+
+    /**
+     * Renders a heavily blurred + slightly saturated version of the album
+     * cover into a data URL. Used as the Apple Music card background, mimicking
+     * iOS Apple Music's lyrics view whose backdrop is the album art blown up
+     * and gaussian-blurred until it becomes a soft, ambient color wash.
+     * @param {string} dataUrl
+     * @returns {Promise<{url: string, luminance: number}|null>}
+     */
+    generateBlurredCover(dataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const size = 256;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    // Apple's wash hides all detail — push blur hard and
+                    // boost saturation so the color stays vivid through it.
+                    ctx.filter = "blur(46px) saturate(1.5)";
+                    // Oversize the draw so blurred edges don't bleed the
+                    // empty canvas through into the corners.
+                    const overscan = 1.45;
+                    const drawSize = size * overscan;
+                    const offset = (drawSize - size) / 2;
+                    ctx.drawImage(img, -offset, -offset, drawSize, drawSize);
+
+                    // Sample average luminance of the blurred result so we
+                    // can pick light-vs-dark text automatically.
+                    ctx.filter = "none";
+                    const sample = ctx.getImageData(0, 0, size, size).data;
+                    let lumSum = 0;
+                    let lumCount = 0;
+                    for (let i = 0; i < sample.length; i += 16) {
+                        const r = sample[i];
+                        const g = sample[i + 1];
+                        const b = sample[i + 2];
+                        lumSum +=
+                            (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+                        lumCount++;
+                    }
+                    const luminance =
+                        lumCount > 0 ? lumSum / lumCount : 0.5;
+
+                    resolve({
+                        url: canvas.toDataURL("image/jpeg", 0.85),
+                        luminance,
+                    });
+                } catch (error) {
+                    resolve(null);
+                }
+            };
+            img.onerror = () => resolve(null);
+            img.src = dataUrl;
+        });
+    }
+
+    /**
+     * Applies the blurred album art as the Apple Music card background image.
+     * When the active style is Apple Music and the user hasn't manually
+     * toggled light-text, picks light vs dark text from the wash's luminance.
+     */
+    applyAppleMusicBackground() {
+        if (!this.blurredCover) return;
+        this.songImage.style.setProperty(
+            "--apple-bg-image",
+            `url("${this.blurredCover.url}")`
+        );
+        this.maybeAutoLightText();
+    }
+
+    /**
+     * For the Apple Music style only, flip light/dark text based on the
+     * blurred album-art luminance — unless the user already chose manually.
+     * Spotify style is left alone (per spec — Spotify only gets the dominant
+     * background color).
+     */
+    maybeAutoLightText() {
+        if (this.cardStyle !== "apple-music") return;
+        if (!this.blurredCover) return;
+        if (this.userPickedLightText) return;
+
+        const wantLight = this.blurredCover.luminance < 0.55;
+        const hasLight = this.finalOptions.classList.contains("light-text");
+        if (wantLight === hasLight) return;
+
+        this.finalOptions.classList.toggle("light-text", wantLight);
+        this.tintBrandLogos(wantLight ? 255 : 0);
+    }
+
+    /**
+     * Re-tints the Spotify and Apple Music wordmark images via canvas. Both
+     * are loaded as base64 (so html2canvas can export them) and re-painted
+     * to grayscale with the given channel value (0 = black, 255 = white).
+     * @param {number} channel
+     */
+    tintBrandLogos(channel) {
+        this.setBase64Image(SPOTIFY_LOGO, SPOTIFY_LOGO_SELECTOR, channel);
+        this.setBase64Image(APPLE_LOGO, APPLE_GLYPH_SELECTOR, channel);
+    }
+
+    /**
+     * Applies the extracted dominant color as the card background, but only
+     * when the user hasn't manually overridden the color and the song-image
+     * still corresponds to the active song (we re-check by element presence).
+     */
+    applyDominantBackground() {
+        if (this.userPickedColor || !this.dominantColor) return;
+        this.setSongImageColor(this.dominantColor);
+    }
+
+    /**
+     * Fetches a remote image and resolves to its base64 data URL.
+     * Mirrors the fetch step in setBase64Image so we can also pass the
+     * data into image processing without re-fetching.
+     * @param {string} url
+     * @returns {Promise<string>}
+     */
+    async fetchAsBase64(url) {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    /**
+     * Extracts a vibrant color from an image (data URL). The algorithm
+     * downsamples the image to a small canvas, scores each pixel by
+     * saturation × mid-lightness weight, and returns the highest scorer.
+     * Falls back to a curated random color if no vibrant pixel is found.
+     * @param {string} dataUrl
+     * @returns {Promise<string>}
+     */
+    extractVibrantColor(dataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const size = 64;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d", {
+                        willReadFrequently: true,
+                    });
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const { data } = ctx.getImageData(0, 0, size, size);
+
+                    let best = null;
+                    let bestScore = -1;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const a = data[i + 3];
+                        if (a < 200) continue;
+
+                        const [h, s, l] = DOMHandler.rgbToHsl(r, g, b);
+                        if (l < 0.18 || l > 0.86) continue;
+                        if (s < 0.32) continue;
+
+                        const lWeight = 1 - Math.abs(l - 0.5) * 1.4;
+                        const score = s * Math.max(lWeight, 0.05);
+                        if (score > bestScore) {
+                            bestScore = score;
+                            best = { r, g, b };
+                        }
+                    }
+
+                    if (!best) {
+                        return resolve(
+                            COLORS[Math.floor(Math.random() * COLORS.length)]
+                        );
+                    }
+                    resolve(`rgb(${best.r}, ${best.g}, ${best.b})`);
+                } catch (error) {
+                    resolve(COLORS[Math.floor(Math.random() * COLORS.length)]);
+                }
+            };
+            img.onerror = () =>
+                resolve(COLORS[Math.floor(Math.random() * COLORS.length)]);
+            img.src = dataUrl;
+        });
+    }
+
+    /**
+     * Convert RGB (0-255) to HSL (h: 0-360, s/l: 0-1).
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @returns {[number, number, number]}
+     */
+    static rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const l = (max + min) / 2;
+        let h = 0;
+        let s = 0;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r:
+                    h = (g - b) / d + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    h = (b - r) / d + 2;
+                    break;
+                case b:
+                    h = (r - g) / d + 4;
+                    break;
+            }
+            h *= 60;
+        }
+        return [h, s, l];
+    }
+
+    /**
+     * Sets the active card style (e.g. "spotify", "apple-music").
+     * Toggles the style class on the .final-options screen and updates the
+     * style-option buttons' selected state.
+     * @param {string} style
+     */
+    setCardStyle(style) {
+        if (!CARD_STYLES.includes(style)) return;
+        this.cardStyle = style;
+
+        CARD_STYLES.forEach((s) => {
+            this.finalOptions.classList.toggle(`style-${s}`, s === style);
+        });
+
+        this.styleOptions.forEach((option) => {
+            const isSelected = option.dataset.style === style;
+            option.classList.toggle("selected", isSelected);
+            option.setAttribute("aria-checked", String(isSelected));
+        });
+
+        // Switching into Apple Music after the cover already loaded should
+        // also re-evaluate auto-text-color.
+        this.maybeAutoLightText();
+
+        // The Apple Music style uses a 1:1 aspect ratio, which changes the
+        // card height. Recompute the down-scale margin once the new layout
+        // has been painted.
+        if (this.widthSlider) {
+            requestAnimationFrame(() =>
+                this.setSongImageWidth(this.widthSlider.value)
+            );
+        }
     }
 
     /**

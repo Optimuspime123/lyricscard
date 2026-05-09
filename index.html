@@ -135,13 +135,40 @@
                             </div>
                         </div>
                         <div class="lyrics" contenteditable="true" spellcheck="false"></div>
-                        <div class="spotify">
-                            <img src="" alt="">
+                        <div class="brand-logo spotify-logo">
+                            <img src="" alt="Spotify">
+                        </div>
+                        <div class="brand-logo apple-music-logo" aria-label="Apple Music">
+                            <img class="apple-glyph" src="" alt="">
+                            <span class="apple-wordmark">Music</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="control-panel">
+                    <div class="control-group style-group">
+                        <div class="control-label">Card style</div>
+                        <div class="style-selection" role="radiogroup" aria-label="Card style">
+                            <button type="button" class="style-option selected" data-style="spotify"
+                                role="radio" aria-checked="true">
+                                <span class="style-glyph spotify-glyph" aria-hidden="true">
+                                    <svg viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="84" cy="84" r="84" fill="#1ED760"/>
+                                        <path fill="#000" d="M122.6 117.7c-1.6 2.6-5 3.4-7.6 1.8-20.8-12.7-47-15.6-77.8-8.6-3 .7-6-1.2-6.7-4.2-.7-3 1.2-6 4.2-6.7 33.7-7.7 62.6-4.4 86 9.9 2.6 1.6 3.4 5.1 1.9 7.8zm10.4-22.2c-2 3.2-6.2 4.2-9.4 2.2-23.8-14.6-60.1-18.8-88.2-10.3-3.6 1.1-7.4-.9-8.5-4.5-1.1-3.6.9-7.4 4.5-8.5 32.2-9.8 72.2-5.1 99.5 11.7 3.2 2 4.2 6.2 2.2 9.4zm.9-23.1C105.3 55.7 57.5 53.9 31 62.4c-4.3 1.3-8.9-1.1-10.2-5.4-1.3-4.3 1.1-8.9 5.4-10.2 30.5-9.3 83.3-7.2 116.1 12.4 3.9 2.3 5.2 7.4 2.9 11.3-2.3 3.9-7.4 5.2-11.3 2.9z"/>
+                                    </svg>
+                                </span>
+                                <span>Spotify</span>
+                            </button>
+                            <button type="button" class="style-option" data-style="apple-music"
+                                role="radio" aria-checked="false">
+                                <span class="style-glyph apple-music-glyph" aria-hidden="true">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="">
+                                </span>
+                                <span>Apple Music</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="control-group color-group">
                         <div class="control-label">Background</div>
                         <div class="color-selection" role="radiogroup" aria-label="Card background color">
@@ -193,9 +220,7 @@
     <footer class="app-footer">
         <div class="footer-credits">
             Made by
-            <a href="https://github.com/palinkiewicz" target="_blank" rel="noopener">palinkiewicz</a>
-            ·
-            <a href="https://ko-fi.com/palinkiewicz" target="_blank" rel="noopener">Ko-Fi</a>
+            <a href="https://prancingunicorn.pages.dev" target="_blank" rel="noopener">Optimus</a>
         </div>
         <button id="dark-mode-toggle" type="button" aria-label="Toggle theme">
             <span class="material-symbols-outlined" aria-hidden="true"></span>

@@ -39,6 +39,11 @@
     color: transparent;
     flex-shrink: 0;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    transition:
+        height var(--motion-effects-default),
+        width var(--motion-effects-default),
+        border-radius var(--motion-effects-default),
+        box-shadow var(--motion-effects-default);
 }
 
 .song-image > .header > div {
@@ -52,6 +57,9 @@
     line-height: 1.2;
     letter-spacing: -0.01em;
     padding-bottom: 0.15rem;
+    transition:
+        font-size var(--motion-effects-default),
+        letter-spacing var(--motion-effects-default);
 }
 
 .song-image > .header .authors {
@@ -72,25 +80,248 @@
     line-height: 1.45;
     letter-spacing: -0.005em;
     padding-bottom: 0.25rem;
+    transition:
+        font-size var(--motion-effects-default),
+        line-height var(--motion-effects-default),
+        letter-spacing var(--motion-effects-default);
 }
 
-.song-image > .spotify {
+/* === Brand logo footer (shared between styles) === */
+.song-image > .brand-logo {
     height: 0;
     padding: 0;
     overflow: hidden;
-    filter: brightness(0) saturate(100%);
-    transition: height var(--motion-effects-default), padding var(--motion-effects-default);
+    display: none;
+    align-items: center;
+    transition:
+        height var(--motion-effects-default),
+        padding var(--motion-effects-default);
 }
 
-.spotify-tag .song-image > .spotify {
+/* Spotify wordmark (image, tinted via filter) */
+.song-image > .spotify-logo {
+    filter: brightness(0) saturate(100%);
+}
+
+.song-image > .spotify-logo > img {
+    height: 100%;
+}
+
+.light-text .song-image > .spotify-logo {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+/* Apple Music wordmark (Apple silhouette img + "Music" text) */
+.song-image > .apple-music-logo {
+    gap: 0.3rem;
+    color: currentColor;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+}
+
+/* The img is pre-tinted via canvas (for html2canvas export); the CSS filter
+   is a redundant browser-side fallback so it always paints correctly. */
+.song-image > .apple-music-logo > .apple-glyph {
+    height: 1.15em;
+    width: auto;
+    filter: brightness(0) saturate(100%);
+}
+
+.light-text .song-image > .apple-music-logo > .apple-glyph {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.song-image > .apple-music-logo > .apple-wordmark {
+    font-size: 1.05em;
+    line-height: 1;
+}
+
+/* Show the matching logo when the "Add logo" toggle is on */
+.style-spotify.spotify-tag .song-image > .spotify-logo,
+.style-apple-music.spotify-tag .song-image > .apple-music-logo {
+    display: flex;
     height: 3rem;
     padding: 1.25rem 0 0.5rem;
 }
 
-.song-image > .spotify > img {
-    height: 100%;
+/* ============================================== */
+/* === Apple Music style — full recreation === */
+/* ============================================== */
+
+.style-apple-music .song-image {
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-radius: 1.5rem;
+    /* Apple Music's lyrics view uses the album art blown up + gaussian-blurred
+       into a soft color wash. We layer:
+         1. a faint top-left highlight + bottom-right shade for depth
+         2. the pre-blurred album art (set via --apple-bg-image at runtime)
+         3. the solid card background-color (extracted vibrant) as fallback. */
+    background-image:
+        radial-gradient(120% 90% at 0% 0%,
+            rgba(255, 255, 255, 0.16) 0%,
+            rgba(255, 255, 255, 0) 55%),
+        radial-gradient(120% 100% at 100% 100%,
+            rgba(0, 0, 0, 0.22) 0%,
+            rgba(0, 0, 0, 0) 60%),
+        var(--apple-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    box-shadow:
+        0 18px 40px -12px rgba(0, 0, 0, 0.28),
+        var(--elev-3);
+    /* Square-by-default to match Apple Music share assets, but always grow
+       to fit the lyrics — no clipping. */
+    min-height: var(--song-image-width, 20rem);
+    justify-content: flex-start;
 }
 
-.light-text .song-image > .spotify {
+.style-apple-music .song-image > .header {
+    gap: 0.875rem;
+    padding-bottom: 1.5rem;
+}
+
+.style-apple-music .song-image > .header > img {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 0.4rem;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.22),
+        0 1px 2px rgba(0, 0, 0, 0.16);
+}
+
+.style-apple-music .song-image > .header .name {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    padding-bottom: 0.15rem;
+}
+
+.style-apple-music .song-image > .header .authors {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.62);
+}
+
+.style-apple-music.light-text .song-image > .header .authors {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.style-apple-music .song-image > .lyrics {
+    font-size: 1.4375rem;
+    font-weight: 700;
+    line-height: 1.32;
+    letter-spacing: -0.022em;
+    padding-bottom: 0.4rem;
+}
+
+/* Apple Music wordmark sits bottom-left; pushed to the bottom of a square
+   card via margin-top:auto when lyrics don't fill it. */
+.style-apple-music.spotify-tag .song-image > .apple-music-logo {
+    height: auto;
+    padding: 0.75rem 0 0;
+    margin-top: auto;
+    justify-content: flex-start;
+    opacity: 0.95;
+}
+
+/* Apple Music's background IS the blurred album art, so a solid color picker
+   has no effect here. Hide the color group to keep the UI honest. */
+.final-options.style-apple-music .color-group {
+    display: none;
+}
+
+/* ============================================== */
+/* === Style picker (segmented control in panel) === */
+/* ============================================== */
+
+.style-group {
+    gap: 0.5rem;
+}
+
+.style-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.375rem;
+    padding: 0.375rem;
+    border-radius: var(--shape-lg);
+    background: var(--md-surface-container-low);
+}
+
+.style-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--shape-md);
+    background: transparent;
+    color: var(--md-on-surface-variant);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition:
+        background var(--motion-effects-default),
+        color var(--motion-effects-default),
+        border-color var(--motion-effects-default),
+        transform var(--motion-spatial-fast);
+}
+
+.style-option:hover {
+    background: color-mix(in oklab, var(--md-on-surface) 6%, transparent);
+    color: var(--md-on-surface);
+}
+
+.style-option:active {
+    transform: scale(0.97);
+}
+
+.style-option:focus-visible {
+    outline: 3px solid var(--md-primary);
+    outline-offset: 2px;
+}
+
+.style-option.selected {
+    background: var(--md-surface-container-highest);
+    color: var(--md-on-surface);
+    border-color: var(--md-outline-variant);
+    box-shadow: var(--elev-1);
+}
+
+.style-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.style-glyph svg,
+.style-glyph img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.apple-music-glyph svg {
+    fill: currentColor;
+}
+
+/* Tint the picker's Apple icon to match the surface text color so it
+   reads correctly on both light and dark theme. */
+.apple-music-glyph img {
+    filter: brightness(0) saturate(100%);
+}
+
+.dark-mode .apple-music-glyph img {
     filter: brightness(0) saturate(100%) invert(100%);
+}
+
+@media (max-width: 380px) {
+    .style-option {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.875rem;
+    }
 }
