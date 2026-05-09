@@ -216,6 +216,10 @@
     transition: opacity 300ms var(--ease-emphasized);
 }
 
+.song-selection > * {
+    min-width: 0;
+}
+
 .song-selection.hidden {
     opacity: 0;
 }
