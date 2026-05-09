@@ -1,6 +1,6 @@
 class Song {
     /**
-     * @param {object} songInfo
+     * @param {object} songInfo  Canonical shape: { name, durationMs, artists: [{name}], albumCoverUrl }
      * @param {object} lyrics
      */
     constructor(songInfo, lyrics = null) {
@@ -8,34 +8,34 @@ class Song {
         this.name = songInfo.name;
 
         /** @type {number} */
-        this.durationMs = songInfo.duration ? Number(songInfo.duration) : 0;
+        this.durationMs = Number(songInfo.durationMs) || 0;
 
         /** @type {Artist[]} */
-        this.artists = songInfo.artist ? [new Artist({ name: songInfo.artist.name })] : [];
+        this.artists = (songInfo.artists ?? []).map((a) => new Artist(a));
 
-        /** @type {string} */
-        this.albumCoverUrl = songInfo.album?.image?.[2]?.['#text'] || songInfo.album?.image?.[1]?.['#text'] || songInfo.album?.image?.[0]?.['#text'] || null;
+        /** @type {string|null} */
+        this.albumCoverUrl = songInfo.albumCoverUrl ?? null;
 
-        /** @type {bool} */
+        /** @type {boolean} */
         this.hasSyncedLyrics = lyrics?.syncedLyrics ? true : false;
 
-        /** @type {Lyric[]} */
+        /** @type {Lyric[]|undefined} */
         this.lyrics = (lyrics?.syncedLyrics ?? lyrics?.plainLyrics)
-            ?.replace(/\n+/g, '\n')
-            ?.split('\n')
-            ?.map(lyric => new Lyric(lyric));
+            ?.replace(/\n+/g, "\n")
+            ?.split("\n")
+            ?.map((lyric) => new Lyric(lyric));
     }
 
     /**
-     * Loads lyrics parameters by scraping them from an API lyrics object
+     * Loads lyrics from a lyrics payload (matches /api/lyrics shape).
      * @param {object} lyrics
      */
     loadLyrics(lyrics) {
         this.hasSyncedLyrics = lyrics?.syncedLyrics ? true : false;
         this.lyrics = (lyrics?.syncedLyrics ?? lyrics?.plainLyrics)
-            ?.replace(/\n+/g, '\n')
-            ?.split('\n')
-            ?.map(lyric => new Lyric(lyric))
-            ?.filter(lyric => lyric.text !== '');
+            ?.replace(/\n+/g, "\n")
+            ?.split("\n")
+            ?.map((lyric) => new Lyric(lyric))
+            ?.filter((lyric) => lyric.text !== "");
     }
 }
