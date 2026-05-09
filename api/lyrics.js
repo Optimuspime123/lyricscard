@@ -3,7 +3,7 @@ const PAXSENIX_LYRICS_BASE = "https://api.paxsenix.org/lyrics/spotify";
 const STEFDP_LYRICS_BASE = "https://lyrics.stefdp.com/lyrics";
 const PAXSENIX_KEY = "sk-paxsenix-y5tK4iuxRPohlXVeF_yC5Uigf7Fr5zS06rzsmMIQ6JAHcH9n";
 const USER_AGENT = "LyricPost/2.0 (https://github.com/optimuspime123/lyricscard)";
-const PROVIDER_TIMEOUT_MS = 4500;
+const PROVIDER_TIMEOUT_MS = 9000;
 
 function formatSyncedLine(time, text) {
     const totalSeconds = Number(time);
