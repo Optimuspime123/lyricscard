@@ -12,13 +12,6 @@ const NO_LYRICS_SELECTED =
 const SPOTIFY_LOGO =
     "https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg";
 
-const BACKGROUND_SHADOW_COLOR = "rgba(0, 0, 0, 0.25)";
-const BACKGROUND_SHADOW_BORDER_RADIUS = 24;
-const BACKGROUND_SHADOW_BLUR = 12;
-const BACKGROUND_SHADOW_OFFSET_X = 0;
-const BACKGROUND_SHADOW_OFFSET_Y = 4;
-const BACKGROUND_TO_SHADOW_FACTOR = 4;
-
 const COLORS = [
     "#1e88e5",
     "#00897b",
@@ -283,7 +276,7 @@ class DOMHandler {
         /** @type {Element} */
         this.spotifyTagSwitch = document.querySelector("#spotify-tag");
         /** @type {Element} */
-        this.additionalBgSwitch = document.querySelector("#additional-bg");
+        this.finalOptions = document.querySelector(".final-options");
         /** @type {Element} */
         this.fontLangSelect = document.querySelector("#font-lang");
         /** @type {Element} */
@@ -350,24 +343,17 @@ class DOMHandler {
         });
 
         this.lightTextSwitch.addEventListener("click", () => {
-            const parent = this.lightTextSwitch.parentElement;
-            parent.classList.toggle("light-text");
+            this.finalOptions.classList.toggle("light-text");
 
             this.setBase64Image(
                 SPOTIFY_LOGO,
                 ".song-image > .spotify > img",
-                parent.classList.contains("light-text") ? 255 : 0
+                this.finalOptions.classList.contains("light-text") ? 255 : 0
             );
         });
 
         this.spotifyTagSwitch.addEventListener("click", () => {
-            this.spotifyTagSwitch.parentElement.classList.toggle("spotify-tag");
-        });
-
-        this.additionalBgSwitch.addEventListener("click", () => {
-            this.additionalBgSwitch.parentElement.classList.toggle(
-                "additional-bg"
-            );
+            this.finalOptions.classList.toggle("spotify-tag");
         });
 
         this.downloadButton.addEventListener("click", () => {
@@ -710,6 +696,7 @@ class DOMHandler {
      */
     setSongImageColor(background) {
         this.songImage.style.backgroundColor = background;
+        this.finalOptions.style.setProperty("--song-image-background", background);
     }
 
     /**
@@ -862,14 +849,6 @@ class DOMHandler {
             scale: window.devicePixelRatio * DOWNLOAD_SCALING_FACTOR,
         });
 
-        if (
-            this.additionalBgSwitch.parentElement.classList.contains(
-                "additional-bg"
-            )
-        ) {
-            canvas = this.addBgToDownloadCanvas(canvas);
-        }
-
         return canvas;
     }
 
@@ -889,100 +868,6 @@ class DOMHandler {
                 }
             }, "image/png");
         });
-    }
-
-    /**
-     * Adds background with shadow to the canvas
-     * @param {HTMLCanvasElement} canvas
-     * @returns {HTMLCanvasElement} canvas with background and shadow
-     */
-    addBgToDownloadCanvas(canvas) {
-        const backgroundColor = this.songImage.style.backgroundColor;
-
-        const borderRadius =
-            BACKGROUND_SHADOW_BORDER_RADIUS *
-            window.devicePixelRatio *
-            DOWNLOAD_SCALING_FACTOR;
-
-        const shadowBlur =
-            BACKGROUND_SHADOW_BLUR *
-            window.devicePixelRatio *
-            DOWNLOAD_SCALING_FACTOR;
-
-        const margin = shadowBlur * BACKGROUND_TO_SHADOW_FACTOR;
-
-        const shadowOffsetX =
-            BACKGROUND_SHADOW_OFFSET_X *
-            window.devicePixelRatio *
-            DOWNLOAD_SCALING_FACTOR;
-
-        const shadowOffsetY =
-            BACKGROUND_SHADOW_OFFSET_Y *
-            window.devicePixelRatio *
-            DOWNLOAD_SCALING_FACTOR;
-
-        const shadowCanvas = document.createElement("canvas");
-        shadowCanvas.width = canvas.width + margin * 2;
-        shadowCanvas.height = canvas.height + margin * 2;
-        const shadowContext = shadowCanvas.getContext("2d");
-
-        shadowContext.fillStyle = backgroundColor;
-        shadowContext.fillRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-
-        shadowContext.fillStyle = BACKGROUND_SHADOW_COLOR;
-        shadowContext.filter = `blur(${shadowBlur}px)`;
-        shadowContext.beginPath();
-        shadowContext.moveTo(
-            margin + shadowOffsetX + borderRadius,
-            margin + shadowOffsetY
-        );
-        shadowContext.lineTo(
-            margin + shadowOffsetX + canvas.width - borderRadius,
-            margin + shadowOffsetY
-        );
-        shadowContext.quadraticCurveTo(
-            margin + shadowOffsetX + canvas.width,
-            margin + shadowOffsetY,
-            margin + shadowOffsetX + canvas.width,
-            margin + shadowOffsetY + borderRadius
-        );
-        shadowContext.lineTo(
-            margin + shadowOffsetX + canvas.width,
-            margin + shadowOffsetY + canvas.height - borderRadius
-        );
-        shadowContext.quadraticCurveTo(
-            margin + shadowOffsetX + canvas.width,
-            margin + shadowOffsetY + canvas.height,
-            margin + shadowOffsetX + canvas.width - borderRadius,
-            margin + shadowOffsetY + canvas.height
-        );
-        shadowContext.lineTo(
-            margin + shadowOffsetX + borderRadius,
-            margin + shadowOffsetY + canvas.height
-        );
-        shadowContext.quadraticCurveTo(
-            margin + shadowOffsetX,
-            margin + shadowOffsetY + canvas.height,
-            margin + shadowOffsetX,
-            margin + shadowOffsetY + canvas.height - borderRadius
-        );
-        shadowContext.lineTo(
-            margin + shadowOffsetX,
-            margin + shadowOffsetY + borderRadius
-        );
-        shadowContext.quadraticCurveTo(
-            margin + shadowOffsetX,
-            margin + shadowOffsetY,
-            margin + shadowOffsetX + borderRadius,
-            margin + shadowOffsetY
-        );
-        shadowContext.closePath();
-        shadowContext.fill();
-
-        shadowContext.filter = "none";
-        shadowContext.drawImage(canvas, margin, margin);
-
-        return shadowCanvas;
     }
 
     /**

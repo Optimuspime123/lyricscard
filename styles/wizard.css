@@ -591,15 +591,13 @@
 }
 
 .light-text #light-text .switch,
-.spotify-tag #spotify-tag .switch,
-.additional-bg #additional-bg .switch {
+.spotify-tag #spotify-tag .switch {
     background: var(--md-primary);
     border-color: var(--md-primary);
 }
 
 .light-text #light-text .switch::after,
-.spotify-tag #spotify-tag .switch::after,
-.additional-bg #additional-bg .switch::after {
+.spotify-tag #spotify-tag .switch::after {
     background: var(--md-on-primary);
     width: 24px;
     height: 24px;
@@ -607,8 +605,7 @@
 }
 
 .light-text #light-text:hover .switch::after,
-.spotify-tag #spotify-tag:hover .switch::after,
-.additional-bg #additional-bg:hover .switch::after {
+.spotify-tag #spotify-tag:hover .switch::after {
     width: 26px;
     height: 26px;
     left: calc(100% - 30px);
