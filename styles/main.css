@@ -3,36 +3,36 @@
 
 /* === DESIGN TOKENS — Material 3 Expressive === */
 :root {
-    /* Color (light) — orange primary, teal secondary, magenta tertiary */
-    --md-primary: hsl(22 95% 48%);
+    /* Color (light) — malachite green, old gold, lapis blue, silver, amber, pink */
+    --md-primary: hsl(162 76% 31%);
     --md-on-primary: hsl(0 0% 100%);
-    --md-primary-container: hsl(28 100% 88%);
-    --md-on-primary-container: hsl(20 90% 14%);
-    --md-secondary: hsl(184 70% 36%);
+    --md-primary-container: hsl(158 56% 84%);
+    --md-on-primary-container: hsl(164 82% 10%);
+    --md-secondary: hsl(43 78% 38%);
     --md-on-secondary: hsl(0 0% 100%);
-    --md-secondary-container: hsl(184 65% 86%);
-    --md-on-secondary-container: hsl(186 80% 10%);
-    --md-tertiary: hsl(330 75% 52%);
+    --md-secondary-container: hsl(43 86% 84%);
+    --md-on-secondary-container: hsl(41 86% 12%);
+    --md-tertiary: hsl(331 66% 50%);
     --md-on-tertiary: hsl(0 0% 100%);
-    --md-tertiary-container: hsl(330 90% 92%);
-    --md-on-tertiary-container: hsl(330 75% 14%);
+    --md-tertiary-container: hsl(332 86% 91%);
+    --md-on-tertiary-container: hsl(331 78% 14%);
     --md-error: hsl(0 75% 42%);
     --md-error-container: hsl(0 100% 95%);
     --md-on-error-container: hsl(0 75% 24%);
 
-    /* Surfaces (light: tones 100/98/96/94/92/90/87) */
-    --md-surface: hsl(28 30% 98%);
-    --md-surface-dim: hsl(28 22% 87%);
+    /* Surfaces (light: blue-silver with blue-black text) */
+    --md-surface: hsl(216 24% 97%);
+    --md-surface-dim: hsl(216 16% 86%);
     --md-surface-container-lowest: hsl(0 0% 100%);
-    --md-surface-container-low: hsl(28 28% 96%);
-    --md-surface-container: hsl(28 26% 94%);
-    --md-surface-container-high: hsl(28 24% 92%);
-    --md-surface-container-highest: hsl(28 22% 90%);
-    --md-on-surface: hsl(28 18% 12%);
-    --md-on-surface-variant: hsl(28 12% 32%);
-    --md-outline: hsl(28 10% 50%);
-    --md-outline-variant: hsl(28 14% 82%);
-    --md-shadow: hsl(28 30% 8%);
+    --md-surface-container-low: hsl(214 24% 95%);
+    --md-surface-container: hsl(216 22% 92%);
+    --md-surface-container-high: hsl(216 18% 89%);
+    --md-surface-container-highest: hsl(216 16% 85%);
+    --md-on-surface: hsl(219 28% 10%);
+    --md-on-surface-variant: hsl(218 16% 31%);
+    --md-outline: hsl(217 11% 47%);
+    --md-outline-variant: hsl(216 16% 78%);
+    --md-shadow: hsl(218 42% 8%);
 
     /* Shape — M3 Expressive 10-step */
     --shape-xs: 4px;
@@ -74,33 +74,33 @@
 }
 
 .dark-mode {
-    --md-primary: hsl(28 100% 72%);
-    --md-on-primary: hsl(20 95% 16%);
-    --md-primary-container: hsl(20 90% 28%);
-    --md-on-primary-container: hsl(28 100% 90%);
-    --md-secondary: hsl(184 65% 70%);
-    --md-on-secondary: hsl(186 90% 12%);
-    --md-secondary-container: hsl(186 70% 24%);
-    --md-on-secondary-container: hsl(184 65% 88%);
-    --md-tertiary: hsl(330 90% 80%);
-    --md-on-tertiary: hsl(330 80% 16%);
-    --md-tertiary-container: hsl(330 70% 30%);
-    --md-on-tertiary-container: hsl(330 90% 92%);
+    --md-primary: hsl(164 72% 64%);
+    --md-on-primary: hsl(166 86% 10%);
+    --md-primary-container: hsl(164 76% 20%);
+    --md-on-primary-container: hsl(158 76% 88%);
+    --md-secondary: hsl(42 90% 68%);
+    --md-on-secondary: hsl(41 84% 12%);
+    --md-secondary-container: hsl(40 76% 24%);
+    --md-on-secondary-container: hsl(43 90% 88%);
+    --md-tertiary: hsl(332 88% 78%);
+    --md-on-tertiary: hsl(331 82% 15%);
+    --md-tertiary-container: hsl(331 70% 30%);
+    --md-on-tertiary-container: hsl(332 92% 92%);
     --md-error: hsl(0 90% 76%);
     --md-error-container: hsl(0 70% 22%);
     --md-on-error-container: hsl(0 100% 92%);
 
-    --md-surface: hsl(28 14% 8%);
-    --md-surface-dim: hsl(28 14% 8%);
-    --md-surface-container-lowest: hsl(28 16% 5%);
-    --md-surface-container-low: hsl(28 14% 11%);
-    --md-surface-container: hsl(28 13% 14%);
-    --md-surface-container-high: hsl(28 12% 18%);
-    --md-surface-container-highest: hsl(28 11% 22%);
-    --md-on-surface: hsl(28 14% 90%);
-    --md-on-surface-variant: hsl(28 10% 78%);
-    --md-outline: hsl(28 8% 60%);
-    --md-outline-variant: hsl(28 10% 32%);
+    --md-surface: hsl(220 30% 6%);
+    --md-surface-dim: hsl(220 30% 6%);
+    --md-surface-container-lowest: hsl(220 34% 3%);
+    --md-surface-container-low: hsl(220 26% 9%);
+    --md-surface-container: hsl(220 22% 12%);
+    --md-surface-container-high: hsl(219 18% 16%);
+    --md-surface-container-highest: hsl(218 15% 21%);
+    --md-on-surface: hsl(216 20% 91%);
+    --md-on-surface-variant: hsl(216 13% 76%);
+    --md-outline: hsl(216 10% 62%);
+    --md-outline-variant: hsl(218 12% 32%);
     --md-shadow: hsl(0 0% 0%);
 
     --elev-1: 0 1px 2px hsl(0 0% 0% / 0.40), 0 1px 3px hsl(0 0% 0% / 0.28);
@@ -365,6 +365,17 @@ main {
     width: 100%;
     max-width: min(900px, 92vw);
     padding: 1.5rem 0 1.25rem;
+}
+
+.final-options .screen-header {
+    grid-template-columns: 48px 1fr auto;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 0.5rem;
 }
 
 .screen-header h2 {

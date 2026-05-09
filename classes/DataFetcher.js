@@ -29,12 +29,12 @@ class DataFetcher {
      * @param {string|null} spotifyTrackId
      * @returns {Promise<object|null>} a lyrics object compatible with Song.loadLyrics
      */
-    async getSongLyrics(artistName, trackName, spotifyTrackId = null) {
+    async getSongLyrics(artistName, trackName, spotifyTrackId = null, signal = null) {
         const params = new URLSearchParams({ artist: artistName, track: trackName });
         if (spotifyTrackId) params.set("spotifyTrackId", spotifyTrackId);
 
         const url = `${this.apiBase}/lyrics?${params.toString()}`;
-        const response = await fetch(url);
+        const response = await fetch(url, signal ? { signal } : undefined);
         if (response.status === 404) return null;
         if (!response.ok) {
             throw new Error(`Lyrics fetch failed (${response.status})`);

@@ -2,8 +2,9 @@ const SONGS_TO_FETCH = 6;
 const DOWNLOAD_SCALING_FACTOR = 4;
 const SELECTION_ANIMATION_DELAY = 300;
 const NEXT_LINE_ANIMATION_DELAY = 30;
-const SEARCHING_FOR_SONG = "Searching Spotify, with Last.fm ready as backup...";
+const SEARCHING_FOR_SONG = "Searching Spotify...";
 const DOWNLOADING = "Downloading lyrics image...";
+const SHARING = "Preparing lyrics image to share...";
 const NO_LYRICS_FOUND =
     "No lyrics found<br>You can still type your own lyrics by clicking here :)";
 const NO_LYRICS_SELECTED =
@@ -28,6 +29,189 @@ const COLORS = [
     "#5e35b1",
 ];
 
+const SITE_THEME_PALETTES = {
+    light: [
+        {
+            "--md-primary": "hsl(162 76% 31%)",
+            "--md-primary-container": "hsl(158 56% 84%)",
+            "--md-on-primary-container": "hsl(164 82% 10%)",
+            "--md-secondary": "hsl(43 78% 38%)",
+            "--md-secondary-container": "hsl(43 86% 84%)",
+            "--md-on-secondary-container": "hsl(41 86% 12%)",
+            "--md-tertiary": "hsl(331 66% 50%)",
+            "--md-tertiary-container": "hsl(332 86% 91%)",
+            "--md-on-tertiary-container": "hsl(331 78% 14%)",
+            "--md-surface": "hsl(216 24% 97%)",
+            "--md-surface-dim": "hsl(216 16% 86%)",
+            "--md-surface-container-low": "hsl(214 24% 95%)",
+            "--md-surface-container": "hsl(216 22% 92%)",
+            "--md-surface-container-high": "hsl(216 18% 89%)",
+            "--md-surface-container-highest": "hsl(216 16% 85%)",
+            "--md-on-surface": "hsl(219 28% 10%)",
+            "--md-on-surface-variant": "hsl(218 16% 31%)",
+            "--md-outline": "hsl(217 11% 47%)",
+            "--md-outline-variant": "hsl(216 16% 78%)",
+            "--md-shadow": "hsl(218 42% 8%)",
+        },
+        {
+            "--md-primary": "hsl(147 62% 28%)",
+            "--md-primary-container": "hsl(146 46% 83%)",
+            "--md-on-primary-container": "hsl(148 78% 9%)",
+            "--md-secondary": "hsl(38 82% 43%)",
+            "--md-secondary-container": "hsl(39 92% 85%)",
+            "--md-on-secondary-container": "hsl(38 88% 12%)",
+            "--md-tertiary": "hsl(344 62% 52%)",
+            "--md-tertiary-container": "hsl(344 86% 91%)",
+            "--md-on-tertiary-container": "hsl(344 74% 14%)",
+            "--md-surface": "hsl(45 28% 96%)",
+            "--md-surface-dim": "hsl(42 16% 84%)",
+            "--md-surface-container-low": "hsl(43 24% 94%)",
+            "--md-surface-container": "hsl(42 22% 91%)",
+            "--md-surface-container-high": "hsl(40 18% 88%)",
+            "--md-surface-container-highest": "hsl(40 16% 84%)",
+            "--md-on-surface": "hsl(44 24% 10%)",
+            "--md-on-surface-variant": "hsl(43 14% 31%)",
+            "--md-outline": "hsl(42 10% 47%)",
+            "--md-outline-variant": "hsl(42 15% 77%)",
+            "--md-shadow": "hsl(42 38% 8%)",
+        },
+        {
+            "--md-primary": "hsl(211 62% 34%)",
+            "--md-primary-container": "hsl(210 68% 86%)",
+            "--md-on-primary-container": "hsl(211 76% 12%)",
+            "--md-secondary": "hsl(45 68% 39%)",
+            "--md-secondary-container": "hsl(45 82% 84%)",
+            "--md-on-secondary-container": "hsl(45 82% 12%)",
+            "--md-tertiary": "hsl(323 58% 49%)",
+            "--md-tertiary-container": "hsl(324 80% 91%)",
+            "--md-on-tertiary-container": "hsl(324 72% 14%)",
+            "--md-surface": "hsl(204 22% 97%)",
+            "--md-surface-dim": "hsl(206 15% 86%)",
+            "--md-surface-container-low": "hsl(204 24% 95%)",
+            "--md-surface-container": "hsl(205 22% 92%)",
+            "--md-surface-container-high": "hsl(206 18% 89%)",
+            "--md-surface-container-highest": "hsl(206 16% 85%)",
+            "--md-on-surface": "hsl(211 28% 10%)",
+            "--md-on-surface-variant": "hsl(210 15% 31%)",
+            "--md-outline": "hsl(210 10% 47%)",
+            "--md-outline-variant": "hsl(207 15% 78%)",
+            "--md-shadow": "hsl(211 42% 8%)",
+        },
+        {
+            "--md-primary": "hsl(179 58% 27%)",
+            "--md-primary-container": "hsl(178 54% 84%)",
+            "--md-on-primary-container": "hsl(180 80% 9%)",
+            "--md-secondary": "hsl(34 90% 45%)",
+            "--md-secondary-container": "hsl(35 94% 86%)",
+            "--md-on-secondary-container": "hsl(33 88% 12%)",
+            "--md-tertiary": "hsl(352 64% 54%)",
+            "--md-tertiary-container": "hsl(352 88% 92%)",
+            "--md-on-tertiary-container": "hsl(352 76% 15%)",
+            "--md-surface": "hsl(220 12% 96%)",
+            "--md-surface-dim": "hsl(220 9% 84%)",
+            "--md-surface-container-low": "hsl(220 13% 94%)",
+            "--md-surface-container": "hsl(220 12% 91%)",
+            "--md-surface-container-high": "hsl(220 10% 88%)",
+            "--md-surface-container-highest": "hsl(220 9% 84%)",
+            "--md-on-surface": "hsl(220 20% 10%)",
+            "--md-on-surface-variant": "hsl(220 11% 31%)",
+            "--md-outline": "hsl(220 8% 47%)",
+            "--md-outline-variant": "hsl(220 10% 77%)",
+            "--md-shadow": "hsl(220 34% 8%)",
+        },
+    ],
+    dark: [
+        {
+            "--md-primary": "hsl(164 72% 64%)",
+            "--md-primary-container": "hsl(164 76% 20%)",
+            "--md-on-primary-container": "hsl(158 76% 88%)",
+            "--md-secondary": "hsl(42 90% 68%)",
+            "--md-secondary-container": "hsl(40 76% 24%)",
+            "--md-on-secondary-container": "hsl(43 90% 88%)",
+            "--md-tertiary": "hsl(332 88% 78%)",
+            "--md-tertiary-container": "hsl(331 70% 30%)",
+            "--md-on-tertiary-container": "hsl(332 92% 92%)",
+            "--md-surface": "hsl(220 30% 6%)",
+            "--md-surface-dim": "hsl(220 30% 6%)",
+            "--md-surface-container-lowest": "hsl(220 34% 3%)",
+            "--md-surface-container-low": "hsl(220 26% 9%)",
+            "--md-surface-container": "hsl(220 22% 12%)",
+            "--md-surface-container-high": "hsl(219 18% 16%)",
+            "--md-surface-container-highest": "hsl(218 15% 21%)",
+            "--md-on-surface": "hsl(216 20% 91%)",
+            "--md-on-surface-variant": "hsl(216 13% 76%)",
+            "--md-outline": "hsl(216 10% 62%)",
+            "--md-outline-variant": "hsl(218 12% 32%)",
+        },
+        {
+            "--md-primary": "hsl(146 66% 61%)",
+            "--md-primary-container": "hsl(146 66% 19%)",
+            "--md-on-primary-container": "hsl(146 74% 86%)",
+            "--md-secondary": "hsl(47 82% 64%)",
+            "--md-secondary-container": "hsl(46 70% 23%)",
+            "--md-on-secondary-container": "hsl(47 88% 87%)",
+            "--md-tertiary": "hsl(345 84% 76%)",
+            "--md-tertiary-container": "hsl(345 66% 29%)",
+            "--md-on-tertiary-container": "hsl(345 90% 91%)",
+            "--md-surface": "hsl(150 18% 6%)",
+            "--md-surface-dim": "hsl(150 18% 6%)",
+            "--md-surface-container-lowest": "hsl(150 22% 3%)",
+            "--md-surface-container-low": "hsl(150 16% 9%)",
+            "--md-surface-container": "hsl(150 14% 12%)",
+            "--md-surface-container-high": "hsl(150 12% 16%)",
+            "--md-surface-container-highest": "hsl(150 10% 21%)",
+            "--md-on-surface": "hsl(150 12% 91%)",
+            "--md-on-surface-variant": "hsl(150 9% 76%)",
+            "--md-outline": "hsl(150 7% 62%)",
+            "--md-outline-variant": "hsl(150 9% 32%)",
+        },
+        {
+            "--md-primary": "hsl(211 82% 70%)",
+            "--md-primary-container": "hsl(211 72% 24%)",
+            "--md-on-primary-container": "hsl(211 86% 89%)",
+            "--md-secondary": "hsl(39 92% 66%)",
+            "--md-secondary-container": "hsl(38 76% 24%)",
+            "--md-on-secondary-container": "hsl(39 90% 88%)",
+            "--md-tertiary": "hsl(323 84% 77%)",
+            "--md-tertiary-container": "hsl(323 66% 29%)",
+            "--md-on-tertiary-container": "hsl(323 90% 92%)",
+            "--md-surface": "hsl(215 36% 6%)",
+            "--md-surface-dim": "hsl(215 36% 6%)",
+            "--md-surface-container-lowest": "hsl(215 42% 3%)",
+            "--md-surface-container-low": "hsl(215 30% 9%)",
+            "--md-surface-container": "hsl(215 26% 12%)",
+            "--md-surface-container-high": "hsl(214 20% 16%)",
+            "--md-surface-container-highest": "hsl(214 16% 21%)",
+            "--md-on-surface": "hsl(213 20% 91%)",
+            "--md-on-surface-variant": "hsl(213 12% 76%)",
+            "--md-outline": "hsl(213 10% 62%)",
+            "--md-outline-variant": "hsl(214 13% 32%)",
+        },
+        {
+            "--md-primary": "hsl(178 66% 60%)",
+            "--md-primary-container": "hsl(179 70% 19%)",
+            "--md-on-primary-container": "hsl(178 76% 86%)",
+            "--md-secondary": "hsl(34 96% 65%)",
+            "--md-secondary-container": "hsl(33 78% 24%)",
+            "--md-on-secondary-container": "hsl(34 92% 88%)",
+            "--md-tertiary": "hsl(352 88% 78%)",
+            "--md-tertiary-container": "hsl(352 68% 30%)",
+            "--md-on-tertiary-container": "hsl(352 92% 92%)",
+            "--md-surface": "hsl(220 10% 5%)",
+            "--md-surface-dim": "hsl(220 10% 5%)",
+            "--md-surface-container-lowest": "hsl(220 12% 2%)",
+            "--md-surface-container-low": "hsl(220 9% 8%)",
+            "--md-surface-container": "hsl(220 8% 11%)",
+            "--md-surface-container-high": "hsl(220 7% 15%)",
+            "--md-surface-container-highest": "hsl(220 6% 20%)",
+            "--md-on-surface": "hsl(220 12% 91%)",
+            "--md-on-surface-variant": "hsl(220 8% 76%)",
+            "--md-outline": "hsl(220 7% 62%)",
+            "--md-outline-variant": "hsl(220 7% 31%)",
+        },
+    ],
+};
+
 class DOMHandler {
     /**
      * @param {DataFetcher} fetcher
@@ -44,6 +228,9 @@ class DOMHandler {
 
         /** @type {number} */
         this.lyricsRequestId = 0;
+
+        /** @type {AbortController[]} */
+        this.lyricsAbortControllers = [];
 
         /**
          * Below all are DOM elements
@@ -86,6 +273,8 @@ class DOMHandler {
         /** @type {Element} */
         this.downloadButton = document.querySelector("#download");
         /** @type {Element} */
+        this.shareButton = document.querySelector("#share");
+        /** @type {Element} */
         this.colorSelection = document.querySelector(".color-selection");
         /** @type {Element} */
         this.customColorInput = document.querySelector("#custom-color input");
@@ -109,6 +298,7 @@ class DOMHandler {
         this.toggleDarkMode = document.querySelector("#dark-mode-toggle");
 
         this.populateColorSelection();
+        this.setupShareButton();
         this.setListeners();
         this.setBase64Image(SPOTIFY_LOGO, ".song-image > .spotify > img", 0);
         this.setTheme(
@@ -184,6 +374,10 @@ class DOMHandler {
             this.downloadSongImage();
         });
 
+        this.shareButton.addEventListener("click", () => {
+            this.shareSongImage();
+        });
+
         // Paste into contenteditable as plain text
         document.querySelectorAll("[contenteditable]").forEach((field) => {
             field.addEventListener("paste", function (event) {
@@ -215,6 +409,32 @@ class DOMHandler {
                 document.body.classList.contains("dark-mode") ? "light" : "dark"
             );
         });
+    }
+
+    /**
+     * Hides native sharing controls when image file sharing is unavailable.
+     */
+    setupShareButton() {
+        if (!this.canShareImageFiles()) {
+            this.shareButton.hidden = true;
+        }
+    }
+
+    /**
+     * Checks whether the browser can open native share UI with PNG files.
+     * @returns {boolean}
+     */
+    canShareImageFiles() {
+        if (!navigator.share || !navigator.canShare || typeof File === "undefined") {
+            return false;
+        }
+
+        try {
+            const testFile = new File(["x"], "lyrics-card.png", { type: "image/png" });
+            return navigator.canShare({ files: [testFile] });
+        } catch (error) {
+            return false;
+        }
     }
 
     /**
@@ -327,6 +547,7 @@ class DOMHandler {
      */
     async findLyrics() {
         const requestId = ++this.lyricsRequestId;
+        this.lyricsAbortControllers.forEach((controller) => controller.abort());
         this.lineSelection.innerHTML = "";
 
         this.displayScreen(3);
@@ -335,28 +556,34 @@ class DOMHandler {
         /** @type {Song} */
         const song = this.songs[this.selectedSongIndex];
 
-        const artists = song.artists.map((artist) => artist.name);
-        let lyrics = null;
-        let currentArtist = 0;
+        const artists = [...new Set(song.artists.map((artist) => artist.name))];
+        const controllers = artists.map(() => new AbortController());
+        this.lyricsAbortControllers = controllers;
 
         try {
-            while (lyrics === null && artists.length > currentArtist) {
-                this.displaySearching(
-                    this.getLyricsSearchingText(song, artists[currentArtist])
-                );
-                lyrics = await this.fetcher.getSongLyrics(
-                    artists[currentArtist],
-                    song.name,
-                    song.spotifyTrackId
-                );
+            this.displaySearching(this.getLyricsSearchingText(song, artists));
 
-                if (requestId !== this.lyricsRequestId) return;
-                currentArtist++;
-            }
+            const lyrics = await Promise.any(
+                artists.map((artist, index) =>
+                    this.fetcher
+                        .getSongLyrics(
+                            artist,
+                            song.name,
+                            index === 0 ? song.spotifyTrackId : null,
+                            controllers[index].signal
+                        )
+                        .then((lyrics) => {
+                            if (!lyrics) throw Error("Lyrics not found");
+                            return lyrics;
+                        })
+                )
+            );
 
-            if (lyrics === null) {
-                throw Error("Lyrics not found");
-            }
+            if (requestId !== this.lyricsRequestId) return;
+
+            this.hideSearching();
+            song.loadLyrics(lyrics);
+            this.populateLineSelection();
         } catch (error) {
             if (requestId !== this.lyricsRequestId) return;
 
@@ -371,26 +598,27 @@ class DOMHandler {
             }
 
             return console.error(error);
+        } finally {
+            controllers.forEach((controller) => controller.abort());
+            if (requestId === this.lyricsRequestId) {
+                this.lyricsAbortControllers = [];
+            }
         }
-
-        if (requestId !== this.lyricsRequestId) return;
-
-        this.hideSearching();
-        song.loadLyrics(lyrics);
-        this.populateLineSelection();
     }
 
     /**
      * Builds provider-aware lyrics loading copy.
      * @param {Song} song
-     * @param {string} artist
+     * @param {string[]} artists
      * @returns {string}
      */
-    getLyricsSearchingText(song, artist) {
+    getLyricsSearchingText(song, artists) {
         const providers = song.spotifyTrackId
             ? "Spotify lyrics, StefDP, and lrclib"
             : "StefDP and lrclib";
-        return `Checking ${providers} for "${song.name}" by ${artist}; using the fastest match...`;
+        return `Checking ${providers} for "${song.name}" by ${artists.join(
+            " / "
+        )}; using the fastest match...`;
     }
 
     /**
@@ -574,11 +802,61 @@ class DOMHandler {
     async downloadSongImage() {
         this.displaySearching(DOWNLOADING);
 
+        try {
+            const blob = await this.getSongImageBlob();
+            window.saveAs(blob, this.getSongImageFileName());
+        } catch (error) {
+            console.error(error);
+        } finally {
+            this.hideSearching();
+        }
+    }
+
+    /**
+     * Shares song image through the browser's native share UI.
+     */
+    async shareSongImage() {
+        if (!this.canShareImageFiles()) return;
+
+        this.displaySearching(SHARING);
+
+        try {
+            const blob = await this.getSongImageBlob();
+            const file = new File([blob], this.getSongImageFileName(), {
+                type: "image/png",
+            });
+
+            if (!navigator.canShare({ files: [file] })) return;
+
+            await navigator.share({
+                files: [file],
+                title: "Lyrics card",
+            });
+        } catch (error) {
+            if (error?.name !== "AbortError") {
+                console.error(error);
+            }
+        } finally {
+            this.hideSearching();
+        }
+    }
+
+    /**
+     * Gets the generated song image file name.
+     * @returns {string}
+     */
+    getSongImageFileName() {
         const song = this.songs[this.selectedSongIndex];
-        const downloadName = `${song.artists
+        return `${song.artists
             .map((artist) => artist.name)
             .join(", ")} - ${song.name}.png`;
+    }
 
+    /**
+     * Generates a canvas from the current song image DOM element.
+     * @returns {Promise<HTMLCanvasElement>}
+     */
+    async getSongImageCanvas() {
         let canvas = await html2canvas(this.songImage, {
             backgroundColor: null,
             scale: window.devicePixelRatio * DOWNLOAD_SCALING_FACTOR,
@@ -592,9 +870,24 @@ class DOMHandler {
             canvas = this.addBgToDownloadCanvas(canvas);
         }
 
-        canvas.toBlob((blob) => {
-            window.saveAs(blob, downloadName);
-            this.hideSearching();
+        return canvas;
+    }
+
+    /**
+     * Generates a PNG blob from the current song image DOM element.
+     * @returns {Promise<Blob>}
+     */
+    async getSongImageBlob() {
+        const canvas = await this.getSongImageCanvas();
+
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error("Failed to create lyrics image."));
+                }
+            }, "image/png");
         });
     }
 
@@ -822,5 +1115,20 @@ class DOMHandler {
             document.body.classList.remove("dark-mode");
             localStorage.setItem("theme", "light");
         }
+
+        this.applyRandomThemePalette(theme);
+    }
+
+    /**
+     * Applies one curated site palette variant for the active light/dark theme.
+     * @param {string} theme
+     */
+    applyRandomThemePalette(theme) {
+        const palettes = SITE_THEME_PALETTES[theme] ?? SITE_THEME_PALETTES.light;
+        const palette = palettes[Math.floor(Math.random() * palettes.length)];
+
+        Object.entries(palette).forEach(([property, value]) => {
+            document.body.style.setProperty(property, value);
+        });
     }
 }

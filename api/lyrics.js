@@ -3,6 +3,7 @@ const PAXSENIX_LYRICS_BASE = "https://api.paxsenix.org/lyrics/spotify";
 const STEFDP_LYRICS_BASE = "https://lyrics.stefdp.com/lyrics";
 const PAXSENIX_KEY = "sk-paxsenix-y5tK4iuxRPohlXVeF_yC5Uigf7Fr5zS06rzsmMIQ6JAHcH9n";
 const USER_AGENT = "LyricPost/2.0 (https://github.com/optimuspime123/lyricscard)";
+const PROVIDER_TIMEOUT_MS = 4500;
 
 function formatSyncedLine(time, text) {
     const totalSeconds = Number(time);
@@ -19,12 +20,22 @@ function normalizeLyrics(payload) {
     return payload;
 }
 
-async function firstValidLyrics(providerPromises) {
-    if (providerPromises.length === 0) return null;
+function createProviderRequest(providerCall) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+
+    return {
+        controller,
+        promise: providerCall(controller.signal).finally(() => clearTimeout(timeout)),
+    };
+}
+
+async function firstValidLyrics(providerRequests) {
+    if (providerRequests.length === 0) return null;
 
     try {
         return await Promise.any(
-            providerPromises.map((promise) =>
+            providerRequests.map(({ promise }) =>
                 promise.then((lyrics) => {
                     const normalized = normalizeLyrics(lyrics);
                     if (!normalized) throw new Error("No lyrics found");
@@ -34,14 +45,17 @@ async function firstValidLyrics(providerPromises) {
         );
     } catch {
         return null;
+    } finally {
+        providerRequests.forEach(({ controller }) => controller.abort());
     }
 }
 
-async function paxsenixLyricsCall(spotifyTrackId) {
+async function paxsenixLyricsCall(spotifyTrackId, signal) {
     const url = new URL(PAXSENIX_LYRICS_BASE);
     url.searchParams.set("id", spotifyTrackId);
 
     const response = await fetch(url, {
+        signal,
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${PAXSENIX_KEY}`,
@@ -66,12 +80,15 @@ async function paxsenixLyricsCall(spotifyTrackId) {
     };
 }
 
-async function stefdpLyricsCall(artist, track) {
+async function stefdpLyricsCall(artist, track, signal) {
     const url = new URL(STEFDP_LYRICS_BASE);
     url.searchParams.set("artist", artist);
     url.searchParams.set("track", track);
 
-    const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    const response = await fetch(url, {
+        signal,
+        headers: { "User-Agent": USER_AGENT },
+    });
     if (!response.ok) {
         throw new Error(`StefDP lyrics ${response.status}`);
     }
@@ -91,11 +108,14 @@ async function stefdpLyricsCall(artist, track) {
     };
 }
 
-async function lrclibLyricsCall(artist, track) {
+async function lrclibLyricsCall(artist, track, signal) {
     const url = new URL(LRCLIB_BASE);
     url.searchParams.set("q", `${artist} ${track}`.trim());
 
-    const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    const response = await fetch(url, {
+        signal,
+        headers: { "User-Agent": USER_AGENT },
+    });
     if (!response.ok) {
         throw new Error(`lrclib lyrics ${response.status}`);
     }
@@ -144,18 +164,30 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const providerPromises = [];
+        const providerRequests = [];
 
         if (spotifyTrackId) {
-            providerPromises.push(paxsenixLyricsCall(spotifyTrackId));
+            providerRequests.push(
+                createProviderRequest((signal) =>
+                    paxsenixLyricsCall(spotifyTrackId, signal)
+                )
+            );
         }
 
         if (track) {
-            providerPromises.push(stefdpLyricsCall(artist, track));
-            providerPromises.push(lrclibLyricsCall(artist, track));
+            providerRequests.push(
+                createProviderRequest((signal) =>
+                    stefdpLyricsCall(artist, track, signal)
+                )
+            );
+            providerRequests.push(
+                createProviderRequest((signal) =>
+                    lrclibLyricsCall(artist, track, signal)
+                )
+            );
         }
 
-        const lyrics = await firstValidLyrics(providerPromises);
+        const lyrics = await firstValidLyrics(providerRequests);
         if (!lyrics) {
             return res.status(404).json({ error: "No lyrics found" });
         }
