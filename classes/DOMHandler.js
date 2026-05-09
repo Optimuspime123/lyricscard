@@ -2,8 +2,7 @@ const SONGS_TO_FETCH = 6;
 const DOWNLOAD_SCALING_FACTOR = 4;
 const SELECTION_ANIMATION_DELAY = 300;
 const NEXT_LINE_ANIMATION_DELAY = 30;
-const SEARCHING_FOR_SONG = "Searching for your song...";
-const SEARCHING_FOR_LYRICS = "Searching for song's lyrics...";
+const SEARCHING_FOR_SONG = "Searching Spotify, with Last.fm ready as backup...";
 const DOWNLOADING = "Downloading lyrics image...";
 const NO_LYRICS_FOUND =
     "No lyrics found<br>You can still type your own lyrics by clicking here :)";
@@ -42,6 +41,9 @@ class DOMHandler {
 
         /** @type {number?} */
         this.selectedSongIndex = null;
+
+        /** @type {number} */
+        this.lyricsRequestId = 0;
 
         /**
          * Below all are DOM elements
@@ -324,11 +326,11 @@ class DOMHandler {
      * Searches for song lyrics and prepares lines selection list
      */
     async findLyrics() {
+        const requestId = ++this.lyricsRequestId;
         this.lineSelection.innerHTML = "";
 
         this.displayScreen(3);
         this.displaySongInfo();
-        this.displaySearching(SEARCHING_FOR_LYRICS);
 
         /** @type {Song} */
         const song = this.songs[this.selectedSongIndex];
@@ -339,10 +341,16 @@ class DOMHandler {
 
         try {
             while (lyrics === null && artists.length > currentArtist) {
+                this.displaySearching(
+                    this.getLyricsSearchingText(song, artists[currentArtist])
+                );
                 lyrics = await this.fetcher.getSongLyrics(
                     artists[currentArtist],
-                    song.name
+                    song.name,
+                    song.spotifyTrackId
                 );
+
+                if (requestId !== this.lyricsRequestId) return;
                 currentArtist++;
             }
 
@@ -350,6 +358,8 @@ class DOMHandler {
                 throw Error("Lyrics not found");
             }
         } catch (error) {
+            if (requestId !== this.lyricsRequestId) return;
+
             this.hideSearching();
 
             if (
@@ -363,9 +373,24 @@ class DOMHandler {
             return console.error(error);
         }
 
+        if (requestId !== this.lyricsRequestId) return;
+
         this.hideSearching();
         song.loadLyrics(lyrics);
         this.populateLineSelection();
+    }
+
+    /**
+     * Builds provider-aware lyrics loading copy.
+     * @param {Song} song
+     * @param {string} artist
+     * @returns {string}
+     */
+    getLyricsSearchingText(song, artist) {
+        const providers = song.spotifyTrackId
+            ? "Spotify lyrics, StefDP, and lrclib"
+            : "StefDP and lrclib";
+        return `Checking ${providers} for "${song.name}" by ${artist}; using the fastest match...`;
     }
 
     /**
@@ -508,13 +533,39 @@ class DOMHandler {
      * @param {number[]} indexes
      */
     setSongLyrics(indexes) {
-        const lyrics =
-            this.songs[this.selectedSongIndex].lyrics
-                ?.filter((_, index) => indexes.includes(index))
-                ?.map((lyric) => lyric.text)
-                ?.join("<br>") ?? NO_LYRICS_FOUND;
-        document.querySelector(".song-image > .lyrics").innerHTML =
-            lyrics !== "" ? lyrics : NO_LYRICS_SELECTED;
+        const container = document.querySelector(".song-image > .lyrics");
+        const selectedLyrics = this.songs[this.selectedSongIndex].lyrics
+            ?.filter((_, index) => indexes.includes(index))
+            ?.map((lyric) => lyric.text);
+
+        if (selectedLyrics === undefined) {
+            return this.setSongLyricsText(
+                container,
+                NO_LYRICS_FOUND.split("<br>")
+            );
+        }
+
+        if (selectedLyrics.length === 0) {
+            return this.setSongLyricsText(
+                container,
+                NO_LYRICS_SELECTED.split("<br>")
+            );
+        }
+
+        this.setSongLyricsText(container, selectedLyrics);
+    }
+
+    /**
+     * Renders lyric text safely while preserving line breaks.
+     * @param {Element} container
+     * @param {string[]} lines
+     */
+    setSongLyricsText(container, lines) {
+        container.replaceChildren();
+        lines.forEach((line, index) => {
+            if (index > 0) container.append(document.createElement("br"));
+            container.append(document.createTextNode(line));
+        });
     }
 
     /**

@@ -4,18 +4,6 @@
 
 Built with vanilla JavaScript on the front, a thin Node serverless backend on Vercel, [Last.fm](https://www.last.fm/) for song metadata, and [lrclib](https://lrclib.net/docs) for lyrics.
 
-## Architecture
-
-```
-┌──────────────┐    /api/search   ┌────────────────────┐
-│  Static      │ ───────────────▶ │  Vercel Function   │ ──▶ Last.fm
-│  index.html  │    /api/lyrics   │  (api/*.js)        │ ──▶ lrclib
-│  + JS/CSS    │ ◀─────────────── │  hides API key     │
-└──────────────┘                  └────────────────────┘
-```
-
-The browser only ever talks to `/api/*`. The Last.fm API key lives in a Vercel environment variable — never on the client.
-
 ## Local development
 
 You need **Node 18+** and the [Vercel CLI](https://vercel.com/docs/cli):

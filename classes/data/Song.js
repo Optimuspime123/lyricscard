@@ -1,11 +1,14 @@
 class Song {
     /**
-     * @param {object} songInfo  Canonical shape: { name, durationMs, artists: [{name}], albumCoverUrl }
+     * @param {object} songInfo  Canonical shape: { spotifyTrackId, name, durationMs, artists: [{name}], albumCoverUrl }
      * @param {object} lyrics
      */
     constructor(songInfo, lyrics = null) {
         /** @type {string} */
         this.name = songInfo.name;
+
+        /** @type {string|null} */
+        this.spotifyTrackId = songInfo.spotifyTrackId ?? null;
 
         /** @type {number} */
         this.durationMs = Number(songInfo.durationMs) || 0;
