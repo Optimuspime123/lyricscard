@@ -587,7 +587,9 @@ class DOMHandler {
         this.lyricsAbortControllers = controllers;
 
         try {
-            this.displaySearching(this.getLyricsSearchingText(song, artists));
+            this.displaySearching(this.getLyricsSearchingText(song, artists), {
+                countdownSeconds: 9,
+            });
 
             const lyrics = await Promise.any(
                 artists.map((artist, index) =>
@@ -1275,21 +1277,77 @@ class DOMHandler {
     /**
      * Displays a searching text
      * @param {string} text
+     * @param {{ countdownSeconds?: number }} [options]
      */
-    displaySearching(text) {
+    displaySearching(text, { countdownSeconds = null } = {}) {
+        this.stopSearchingCountdown();
         this.searchingTexts.forEach((element) => {
-            element.textContent = text;
+            element.replaceChildren();
+            const message = document.createElement("span");
+            message.classList.add("searching-message");
+            message.textContent = text;
+            element.append(message);
             element.classList.remove("hidden");
         });
+
+        if (countdownSeconds !== null) {
+            this.startSearchingCountdown(countdownSeconds);
+        }
     }
 
     /**
      * Hides the searching text
      */
     hideSearching() {
+        this.stopSearchingCountdown();
         this.searchingTexts.forEach((element) => {
             element.classList.add("hidden");
         });
+    }
+
+    /**
+     * Renders a live countdown beneath the active searching message until it
+     * reaches zero (or until cleared). The lyrics-fetch path uses this to
+     * surface the per-provider timeout (9s) so the user knows how long until
+     * they should expect a result or a no-lyrics-found fallback.
+     * @param {number} seconds
+     */
+    startSearchingCountdown(seconds) {
+        let remaining = Math.max(0, Math.floor(seconds));
+
+        const countdownNodes = [];
+        this.searchingTexts.forEach((element) => {
+            const node = document.createElement("span");
+            node.classList.add("searching-countdown");
+            element.append(node);
+            countdownNodes.push(node);
+        });
+
+        const render = () => {
+            countdownNodes.forEach((node) => {
+                node.textContent = `${remaining}s`;
+            });
+        };
+        render();
+
+        this.searchingCountdownInterval = setInterval(() => {
+            remaining = Math.max(0, remaining - 1);
+            render();
+            if (remaining === 0) {
+                clearInterval(this.searchingCountdownInterval);
+                this.searchingCountdownInterval = null;
+            }
+        }, 1000);
+    }
+
+    /**
+     * Cancels the active searching countdown, if any.
+     */
+    stopSearchingCountdown() {
+        if (this.searchingCountdownInterval) {
+            clearInterval(this.searchingCountdownInterval);
+            this.searchingCountdownInterval = null;
+        }
     }
 
     /**
