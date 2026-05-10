@@ -96,6 +96,16 @@ void main() {
 
     col = clamp(col, 0.0, 1.0);
 
+    // Edge mask — push the lines toward the top/bottom rims so they
+    // frame the text rather than draw across it. `yEdge` is 0 at the
+    // vertical center, 1 at the top/bottom rim. At rest the mask is
+    // hard (center fully cleared); on press the floor lifts to ~0.45
+    // so a little overlap bleeds into the text area.
+    float yEdge = abs((gl_FragCoord.y / u_resolution.y) - 0.5) * 2.0;
+    float edgeMask = smoothstep(0.30, 0.80, yEdge);
+    edgeMask = mix(mix(0.0, 0.45, u_intensity), 1.0, edgeMask);
+    col *= edgeMask;
+
     // Premultiplied alpha: brightest channel drives opacity so dark areas
     // are transparent and the AMOLED surface shows through. Keeping
     // alpha = max(rgb) preserves the premul invariant (rgb <= alpha).
