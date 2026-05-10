@@ -1348,6 +1348,11 @@ class DOMHandler {
             clearInterval(this.searchingCountdownInterval);
             this.searchingCountdownInterval = null;
         }
+        this.searchingTexts.forEach((element) => {
+            element
+                .querySelectorAll(".searching-countdown")
+                .forEach((node) => node.remove());
+        });
     }
 
     /**
