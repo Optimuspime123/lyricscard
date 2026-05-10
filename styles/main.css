@@ -261,6 +261,7 @@ button {
 
 /* === LAYOUT === */
 main {
+    position: relative;
     flex: 1;
     display: flex;
     justify-content: center;
