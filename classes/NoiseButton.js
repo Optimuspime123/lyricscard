@@ -97,7 +97,7 @@ void main() {
     col = clamp(col, 0.0, 1.0);
 
     // Edge mask — push the lines toward the top/bottom rims so they
-    // frame the text rather than draw across it. `yEdge` is 0 at the
+    // frame the text rather than draw across it. yEdge is 0 at the
     // vertical center, 1 at the top/bottom rim. At rest the mask is
     // hard (center fully cleared); on press the floor lifts to ~0.45
     // so a little overlap bleeds into the text area.
@@ -146,7 +146,7 @@ class NoiseButton {
 
         this.intensity = 0;
         this.targetIntensity = 0;
-        // `phase` advances at a rate that depends on the current intensity
+        // phase advances at a rate that depends on the current intensity
         // so fbm motion accelerates smoothly between rest/active.
         this.phase = 0;
         this.lastFrame = performance.now();
