@@ -1,10 +1,11 @@
 /**
- * NoiseButton — overlays an animated WebGL noise texture on a button.
+ * NoiseButton — overlays an animated WebGL chaos-line shader on a button.
  * Designed for "main action" CTAs (the search button + the lyrics FAB).
  *
- * The shader produces a slow flowing aurora at rest; on press/hover it
- * intensifies and speeds up. Blended via `mix-blend-mode: overlay` so the
- * button's M3 surface tone still dominates.
+ * Four color channels (violet / amber / mint / azure) trace FBM-displaced
+ * sine bands that thicken and accelerate on press. Output is premultiplied
+ * RGBA so dark areas read as transparent — the AMOLED surface beneath shows
+ * through and the colored bands paint over it.
  */
 
 const VERT_SRC = `
@@ -28,45 +29,58 @@ float vnoise(vec2 p) {
     vec2 f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
     return mix(
-        mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+        mix(hash(i),                  hash(i + vec2(1.0, 0.0)), f.x),
         mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
         f.y);
 }
 
-float fbm(vec2 p) {
-    float v = 0.0;
-    float a = 0.55;
+float fbm(vec2 p, vec3 freq) {
+    return vnoise(p * freq.x) * 0.50
+         + vnoise(p * freq.y) * 0.25
+         + vnoise(p * freq.z) * 0.125;
+}
+
+vec3 chaosLines(vec2 uv, vec3 freq, float t) {
+    vec3 cols[4];
+    cols[0] = vec3(0.78, 0.18, 1.00); // violet
+    cols[1] = vec3(1.00, 0.40, 0.10); // amber
+    cols[2] = vec3(0.18, 1.00, 0.55); // mint
+    cols[3] = vec3(0.20, 0.55, 1.00); // azure
+
+    float amp   = mix(80.0, 16.0, u_intensity);
+    float thick = mix(0.22, 0.40, u_intensity);
+
+    vec3 acc = vec3(0.0);
     for (int i = 0; i < 4; i++) {
-        v += a * vnoise(p);
-        p *= 2.05;
-        a *= 0.55;
+        float fi     = float(i);
+        float period = 2.6 + fi * 1.2;
+        float disp   = fbm(uv + t * period, freq);
+        float wave   = sin(uv.y + disp * 1.4) * (amp + fi * 5.0);
+        acc += abs(thick / wave) * cols[i];
     }
-    return v;
+    return acc;
 }
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float aspect = u_resolution.x / u_resolution.y;
-    vec2 p = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);
+    // Square-normalized so line density is independent of button aspect.
+    vec2 uv = (gl_FragCoord.xy / u_resolution.xy - 0.5) * 3.0;
 
-    float t = u_time * mix(0.35, 1.8, u_intensity);
+    float t = u_time * mix(0.10, 0.45, u_intensity);
 
-    float n1 = fbm(p * 2.6 + vec2(t * 0.45, t * 0.10));
-    float n2 = fbm(p * 4.2 + vec2(-t * 0.30, t * 0.55));
-    float ribbon = smoothstep(0.42, 0.78, n1) * smoothstep(0.40, 0.74, n2);
+    // Slow breathing pulse, scaled up when the button is engaged.
+    float pulseT = sin(u_time * 0.5) * 0.5 + 0.5;
+    float pulse  = mix(0.30, 0.95, pulseT) * mix(0.65, 1.30, u_intensity);
 
-    float lineCarve = abs(p.y * 1.8 + (n1 - 0.5) * 0.6 - sin(p.x * 1.6 + t) * 0.18);
-    float line = smoothstep(0.06 - u_intensity * 0.02, 0.0, lineCarve);
+    vec3 col  = chaosLines(uv,                vec3(58.0, 36.0, 4.0), t      ) * pulse;
+         col += chaosLines(uv * 1.3 + 0.4,    vec3(5.5,  2.4,  1.0), t * 0.8) * pulse * 0.45;
 
-    float grain = (hash(gl_FragCoord.xy + t * 60.0) - 0.5);
+    col = clamp(col, 0.0, 1.0);
 
-    float light = ribbon * mix(0.30, 0.95, u_intensity)
-                + line   * mix(0.10, 0.55, u_intensity)
-                + grain  * mix(0.05, 0.18, u_intensity);
-
-    light = clamp(light, -0.4, 1.4);
-
-    gl_FragColor = vec4(vec3(0.5 + light * 0.5), 1.0);
+    // Premultiplied alpha: brightest channel drives opacity so dark areas
+    // become transparent and the AMOLED surface shows through. Keeping
+    // alpha = max(rgb) preserves the premul invariant (rgb <= alpha).
+    float alpha = max(col.r, max(col.g, col.b));
+    gl_FragColor = vec4(col, alpha);
 }
 `;
 
@@ -91,7 +105,7 @@ class NoiseButton {
         const gl = this.canvas.getContext("webgl", {
             alpha: true,
             antialias: false,
-            premultipliedAlpha: false,
+            premultipliedAlpha: true,
             preserveDrawingBuffer: false,
         });
         if (!gl) {

@@ -302,7 +302,7 @@ main {
     outline-offset: 2px;
 }
 
-/* === PRIMARY BUTTON — pill shape, expressive === */
+/* === PRIMARY BUTTON — AMOLED pill, colored text + chaos shader === */
 .btn-primary {
     position: relative;
     isolation: isolate;
@@ -315,8 +315,8 @@ main {
     padding: 0 28px;
     border: none;
     border-radius: var(--shape-full);
-    background: var(--md-primary);
-    color: var(--md-on-primary);
+    background: #ffffff;
+    color: var(--md-primary);
     font-size: 0.9375rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -328,6 +328,10 @@ main {
         filter var(--motion-effects-default);
 }
 
+.dark-mode .btn-primary {
+    background: #000000;
+}
+
 .btn-primary > *:not(.noise-canvas) {
     position: relative;
     z-index: 1;
@@ -335,7 +339,7 @@ main {
 
 .btn-primary:hover {
     box-shadow: var(--elev-4);
-    filter: brightness(1.05);
+    filter: brightness(1.04);
 }
 
 .btn-primary:active {
@@ -343,7 +347,7 @@ main {
 }
 
 .btn-primary:focus-visible {
-    outline: 3px solid var(--md-on-primary-container);
+    outline: 3px solid var(--md-primary);
     outline-offset: 3px;
 }
 
@@ -453,7 +457,7 @@ main {
     content: "light_mode";
 }
 
-/* === FAB — Extended, M3 Expressive === */
+/* === FAB — Extended, AMOLED with colored text === */
 .fab {
     position: fixed;
     bottom: clamp(1rem, 4vw, 2rem);
@@ -467,8 +471,8 @@ main {
     padding: 0 24px;
     border: none;
     border-radius: var(--shape-xl);
-    background: var(--md-tertiary);
-    color: var(--md-on-tertiary);
+    background: #ffffff;
+    color: var(--md-tertiary);
     font: inherit;
     font-size: 0.9375rem;
     font-weight: 700;
@@ -480,6 +484,10 @@ main {
         opacity var(--motion-effects-default),
         box-shadow var(--motion-effects-default);
     z-index: 100;
+}
+
+.dark-mode .fab {
+    background: #000000;
 }
 
 .fab > *:not(.noise-canvas) {
@@ -497,7 +505,7 @@ main {
 }
 
 .fab:focus-visible {
-    outline: 3px solid var(--md-primary);
+    outline: 3px solid var(--md-tertiary);
     outline-offset: 3px;
 }
 
@@ -511,7 +519,9 @@ main {
     pointer-events: none;
 }
 
-/* === NOISE OVERLAY for action buttons === */
+/* === NOISE OVERLAY for action buttons ===
+   Shader emits premultiplied RGBA — bright lines opaque, dark areas
+   transparent — so we just alpha-composite over the AMOLED surface. */
 .noise-canvas {
     position: absolute;
     inset: 0;
@@ -519,18 +529,17 @@ main {
     height: 100%;
     border-radius: inherit;
     pointer-events: none;
-    mix-blend-mode: overlay;
-    opacity: 0.55;
+    mix-blend-mode: normal;
+    opacity: 0.6;
     z-index: 0;
 }
 
 .dark-mode .noise-canvas {
-    mix-blend-mode: soft-light;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .noise-canvas { opacity: 0.25; }
+    .noise-canvas { opacity: 0.3; }
 }
 
 /* === REDUCED MOTION === */
