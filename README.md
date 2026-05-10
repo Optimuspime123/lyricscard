@@ -2,7 +2,7 @@
 
 > Turn the lines that hit hardest into a card you can share.
 
-Search a song, pick the lyrics that wreck you, and walk away with a Spotify- or Apple-Music-style card you can drop into a story, a tweet, or a group chat. Vanilla JS on the front, a thin Node + Vercel backend on the back, [Last.fm](https://www.last.fm/) for song metadata, and [lrclib](https://lrclib.net/docs) (with a couple of fallbacks) for lyrics.
+Search a song, pick the lyrics that wreck you, and walk away with a Spotify- or Apple-Music-style card you can drop into a story, a tweet, or a group chat. Vanilla JS on the front, a thin Node + Vercel backend on the back, Spotify/Lastfm for song metadata, and [lrclib](https://lrclib.net/docs) (with a couple of fallbacks) for lyrics.
 
 <p align="center">
   <img src=".screenshots/01-landing-dark.png" alt="LyricScard landing page in dark mode" width="720">
@@ -48,16 +48,6 @@ Light mode is right there in the footer if you'd rather:
   <img src=".screenshots/02-landing-light.png" alt="LyricScard landing page in light mode" width="720">
 </p>
 
-## What's new
-
-A few things that landed recently and are worth calling out:
-
-- **Apple Music card style.** A second card layout that uses the album cover as a blurred background — looks especially good on photo-driven covers.
-- **9-second search countdown.** Lyric lookups race three providers in parallel ([lrclib](https://lrclib.net/docs), StefDP, PaxSenix) with a hard 9s budget. The countdown ticks down on screen so you know the app didn't stall.
-- **Android search-results scroll fix.** Long song titles no longer push the results card off the side of the screen.
-- **Footer pinned to viewport bottom.** On long screens it sits at the bottom; on short ones it hugs the content. Used to do neither well.
-- **API keys moved server-side.** Last.fm key lives in `LASTFM_API_KEY` on the server; nothing sensitive ships to the browser.
-- **Material 3 Expressive redesign.** New color tokens, glassmorphic surfaces, real elevation, light + dark palettes that swap cleanly.
 
 ## Run it locally
 
@@ -100,8 +90,6 @@ vercel.json          function config + headers
 ```
 
 Cards render in the DOM (no canvas hacks) and get exported via [html2canvas](https://html2canvas.hertzen.com/) at 2× scale. Album art and brand wordmarks are pre-tinted on a canvas so html2canvas doesn't have to. The dominant card color is sampled from the cover by scoring pixels on saturation × mid-lightness, with a curated random palette as a fallback.
-
-Lyric lookups use `Promise.any` across providers so the first one to return wins; the others are aborted. If everything 404s, the UI says so instead of spinning forever.
 
 ## Disclaimer
 
